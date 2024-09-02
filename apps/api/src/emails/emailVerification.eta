@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome and Verify Email</title>
+</head>
+<body>
+    <h1>Welcome to our platform!</h1>
+    <p>Thank you for signing up. Please verify your email address by clicking the link below:</p>
+    <a href="<%= it.verifyUrl %>">Verify Email</a>
+</body>
+</html>
