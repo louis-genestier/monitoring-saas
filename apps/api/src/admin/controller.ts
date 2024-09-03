@@ -8,10 +8,13 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/utils/errors";
+import { getPaginationParams } from "@/utils/pagination";
 import { vValidator } from "@hono/valibot-validator";
 import { compare } from "bcrypt";
-import { Hono, HonoRequest } from "hono";
-import { array, object, optional, string } from "valibot";
+import { Hono } from "hono";
+import { object, string } from "valibot";
+import { productsRoutes } from "./products.controller";
+import { websitesRoutes } from "./websites.controller";
 
 const app = new Hono<Context>();
 
@@ -19,31 +22,6 @@ const loginSchema = object({
   email: string(),
   password: string(),
 });
-
-const websiteSchema = object({
-  name: string(),
-  apiBaseurl: string(),
-  headers: string(),
-});
-
-const productSchema = object({
-  name: string(),
-  externalIds: optional(
-    array(
-      object({
-        websiteId: string(),
-        value: string(),
-      })
-    )
-  ),
-});
-
-const getPaginationParams = (req: HonoRequest) => {
-  const page = parseInt(req.query("page") || "1");
-  const limit = parseInt(req.query("limit") || "10");
-  const skip = (page - 1) * limit;
-  return { page, limit, skip };
-};
 
 const routes = app
   .post("/login", vValidator("json", loginSchema), async (c) => {
@@ -206,177 +184,9 @@ const routes = app
     }, 0);
 
     return c.json({ monthlyRecurringRevenue: revenue });
-  })
-  // Website management
-  .get("/websites", sessionMiddleware, adminMiddleware, async (c) => {
-    const { page, limit, skip } = getPaginationParams(c.req);
-    const websites = await prisma.website.findMany({
-      skip,
-      take: limit,
-    });
-    const total = await prisma.website.count();
-    return c.json({
-      items: websites.map((website) => ({
-        ...website,
-        headers: JSON.stringify(website?.headers),
-      })),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  })
-  .get("/websites/:id", sessionMiddleware, adminMiddleware, async (c) => {
-    const id = c.req.param("id");
-    const website = await prisma.website.findUnique({
-      where: { id },
-    });
-    return c.json({ ...website, headers: JSON.stringify(website?.headers) });
-  })
-  .post(
-    "/websites",
-    sessionMiddleware,
-    adminMiddleware,
-    vValidator("json", websiteSchema),
-    async (c) => {
-      const { name, apiBaseurl, headers } = c.req.valid("json");
-      const website = await prisma.website.create({
-        data: {
-          apiBaseurl,
-          name,
-          headers: JSON.parse(headers),
-        },
-      });
-      return c.json(website);
-    }
-  )
-  .put(
-    "/websites/:id",
-    sessionMiddleware,
-    adminMiddleware,
-    vValidator("json", websiteSchema),
-    async (c) => {
-      const id = c.req.param("id");
-      const data = c.req.valid("json");
-
-      const website = await prisma.website.update({
-        where: { id },
-        data: {
-          ...data,
-          headers: JSON.parse(data.headers),
-        },
-      });
-      return c.json({ ...website, headers: JSON.stringify(website?.headers) });
-    }
-  )
-  .delete("/websites/:id", sessionMiddleware, adminMiddleware, async (c) => {
-    const id = c.req.param("id");
-    await prisma.website.delete({
-      where: { id },
-    });
-    return c.json({ message: "Website deleted successfully" });
-  })
-  // Product management
-  .get("/products", sessionMiddleware, adminMiddleware, async (c) => {
-    const { page, limit, skip } = getPaginationParams(c.req);
-
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        skip,
-        take: limit,
-        include: {
-          ProductId: {
-            include: {
-              website: true,
-            },
-          },
-        },
-      }),
-      prisma.product.count(),
-    ]);
-
-    return c.json({
-      items: products,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  })
-  .get("/products/:id", sessionMiddleware, adminMiddleware, async (c) => {
-    const id = c.req.param("id");
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        ProductId: {
-          include: {
-            website: true,
-          },
-        },
-        PricePoint: {
-          orderBy: {
-            timestamp: "desc",
-          },
-          take: 10,
-        },
-      },
-    });
-    if (!product) {
-      throw new NotFoundError("Product not found");
-    }
-
-    return c.json(product);
-  })
-  .post(
-    "/products",
-    sessionMiddleware,
-    adminMiddleware,
-    vValidator("json", productSchema),
-    async (c) => {
-      const { name, externalIds } = c.req.valid("json");
-
-      const product = await prisma.product.create({
-        data: { name },
-      });
-
-      if (externalIds) {
-        await prisma.productId.createMany({
-          data: externalIds.map((externalId) => ({
-            productId: product.id,
-            websiteId: externalId.websiteId,
-            externalId: externalId.value,
-          })),
-        });
-      }
-
-      return c.json(product);
-    }
-  )
-  .put(
-    "/products/:id",
-    sessionMiddleware,
-    adminMiddleware,
-    vValidator("json", productSchema),
-    async (c) => {
-      const id = c.req.param("id");
-      const { name } = c.req.valid("json");
-      const product = await prisma.product.update({
-        where: { id },
-        data: { name },
-      });
-      return c.json(product);
-    }
-  )
-  .delete("/products/:id", sessionMiddleware, adminMiddleware, async (c) => {
-    const id = c.req.param("id");
-    await prisma.product.delete({
-      where: { id },
-    });
-    return c.json({ message: "Product deleted successfully" });
   });
+
+routes.route("/products", productsRoutes);
+routes.route("/websites", websitesRoutes);
 
 export { routes as adminRoutes };
