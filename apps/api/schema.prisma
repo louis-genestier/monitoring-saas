@@ -44,3 +44,43 @@ model Subscription {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
+
+model Website {
+  id         String       @id @default(cuid())
+  name       String
+  apiBaseurl String
+  headers    Json?
+  isEnabled  Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  ProductId  ProductId[]
+  PricePoint PricePoint[]
+}
+
+model Product {
+  id         String       @id @default(cuid())
+  name       String
+  ProductId  ProductId[]
+  PricePoint PricePoint[]
+}
+
+model ProductId {
+  id         String  @id @default(cuid())
+  externalId String
+  productId  String
+  websiteId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  website    Website @relation(fields: [websiteId], references: [id])
+
+  @@unique([productId, websiteId])
+}
+
+model PricePoint {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  price     Float
+  timestamp DateTime @default(now())
+  websiteId String
+  website   Website  @relation(fields: [websiteId], references: [id])
+}

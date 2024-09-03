@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:14
-    container_name: postgres
+    container_name: postgres-website-monitoring
     restart: always
     ports:
       - 5432:5432
@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: app
     volumes:
-      - /tmp/postgres-data:/var/lib/postgresql/data
+      - /tmp/postgres-data-website-monitoring:/var/lib/postgresql/data
 
 volumes:
-  postgres-data:
+  postgres-data-website-monitoring:
