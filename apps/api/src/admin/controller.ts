@@ -1,13 +1,24 @@
 import { adminMiddleware } from "@/auth/middleware/isAdminMiddleware";
 import { sessionMiddleware } from "@/auth/middleware/sessionMiddleware";
+import { lucia } from "@/config/lucia";
 import { prisma } from "@/config/prisma";
 import { Context } from "@/types/honoContext";
-import { NotFoundError } from "@/utils/errors";
+import {
+  ForbiddenError,
+  NotFoundError,
+  UnauthorizedError,
+} from "@/utils/errors";
 import { vValidator } from "@hono/valibot-validator";
+import { compare } from "bcrypt";
 import { Hono, HonoRequest } from "hono";
 import { object, string } from "valibot";
 
-const app = new Hono<Context>().use("*", sessionMiddleware, adminMiddleware);
+const app = new Hono<Context>();
+
+const loginSchema = object({
+  email: string(),
+  password: string(),
+});
 
 const websiteSchema = object({
   name: string(),
@@ -27,7 +38,34 @@ const getPaginationParams = (req: HonoRequest) => {
 };
 
 const routes = app
-  .get("/users", async (c) => {
+  .post("/login", vValidator("json", loginSchema), async (c) => {
+    const { email, password } = c.req.valid("json");
+    const user = await prisma.user.findUnique({
+      where: { email, isAdmin: true },
+    });
+
+    const passwordHash = user?.password ?? "$2a$12$" + "a".repeat(53);
+    const isValidPassword = await compare(password, passwordHash);
+
+    if (isValidPassword && user) {
+      if (!user.isEmailVerified) {
+        throw new ForbiddenError("Email is not verified");
+      }
+      const session = await lucia.createSession(user.id, {});
+      c.header(
+        "Set-Cookie",
+        lucia.createSessionCookie(session.id).serialize(),
+        {
+          append: true,
+        }
+      );
+
+      return c.json({ message: "Logged in successfully" });
+    } else {
+      throw new UnauthorizedError("Invalid email or password");
+    }
+  })
+  .get("/users", sessionMiddleware, adminMiddleware, async (c) => {
     const { page, limit, skip } = getPaginationParams(c.req);
 
     const [users, total] = await Promise.all([
@@ -60,7 +98,7 @@ const routes = app
       },
     });
   })
-  .get("/users/:id", async (c) => {
+  .get("/users/:id", sessionMiddleware, adminMiddleware, async (c) => {
     const id = c.req.param("id");
     const user = await prisma.user.findUnique({
       where: { id },
@@ -71,7 +109,7 @@ const routes = app
     }
     return c.json(user);
   })
-  .put("/users/:id", async (c) => {
+  .put("/users/:id", sessionMiddleware, adminMiddleware, async (c) => {
     const id = c.req.param("id");
     const { isAdmin } = await c.req.json();
     const user = await prisma.user.update({
@@ -81,7 +119,7 @@ const routes = app
     return c.json(user);
   })
   // Subscriptions management
-  .get("/subscriptions", async (c) => {
+  .get("/subscriptions", sessionMiddleware, adminMiddleware, async (c) => {
     const { page, limit, skip } = getPaginationParams(c.req);
 
     const [subscriptions, total] = await Promise.all([
@@ -103,7 +141,7 @@ const routes = app
       },
     });
   })
-  .get("/subscriptions/:id", async (c) => {
+  .get("/subscriptions/:id", sessionMiddleware, adminMiddleware, async (c) => {
     const id = c.req.param("id");
     const subscription = await prisma.subscription.findUnique({
       where: { id },
@@ -114,7 +152,7 @@ const routes = app
     }
     return c.json(subscription);
   })
-  .put("/subscriptions/:id", async (c) => {
+  .put("/subscriptions/:id", sessionMiddleware, adminMiddleware, async (c) => {
     const id = c.req.param("id");
     const { status, planName } = await c.req.json();
     const subscription = await prisma.subscription.update({
@@ -123,7 +161,7 @@ const routes = app
     });
     return c.json(subscription);
   })
-  .get("/metrics/users", async (c) => {
+  .get("/metrics/users", sessionMiddleware, adminMiddleware, async (c) => {
     const totalUsers = await prisma.user.count();
     const newUsersLast30Days = await prisma.user.count({
       where: {
@@ -134,7 +172,7 @@ const routes = app
     });
     return c.json({ totalUsers, newUsersLast30Days });
   })
-  .get("/metrics/revenue", async (c) => {
+  .get("/metrics/revenue", sessionMiddleware, adminMiddleware, async (c) => {
     const subscriptions = await prisma.subscription.findMany({
       where: {
         status: "active",
@@ -162,31 +200,43 @@ const routes = app
     return c.json({ monthlyRecurringRevenue: revenue });
   })
   // Website management
-  .get("/websites", async (c) => {
+  .get("/websites", sessionMiddleware, adminMiddleware, async (c) => {
     const websites = await prisma.website.findMany();
     return c.json(websites);
   })
-  .post("/websites", vValidator("json", websiteSchema), async (c) => {
-    const { name, apiBaseurl, headers } = c.req.valid("json");
-    const website = await prisma.website.create({
-      data: {
-        apiBaseurl,
-        name,
-        headers: JSON.parse(headers),
-      },
-    });
-    return c.json(website);
-  })
-  .put("/websites/:id", vValidator("json", websiteSchema), async (c) => {
-    const id = c.req.param("id");
-    const { name, apiBaseurl, headers } = c.req.valid("json");
-    const website = await prisma.website.update({
-      where: { id },
-      data: { name, apiBaseurl, headers: JSON.parse(headers) },
-    });
-    return c.json(website);
-  })
-  .delete("/websites/:id", async (c) => {
+  .post(
+    "/websites",
+    sessionMiddleware,
+    adminMiddleware,
+    vValidator("json", websiteSchema),
+    async (c) => {
+      const { name, apiBaseurl, headers } = c.req.valid("json");
+      const website = await prisma.website.create({
+        data: {
+          apiBaseurl,
+          name,
+          headers: JSON.parse(headers),
+        },
+      });
+      return c.json(website);
+    }
+  )
+  .put(
+    "/websites/:id",
+    sessionMiddleware,
+    adminMiddleware,
+    vValidator("json", websiteSchema),
+    async (c) => {
+      const id = c.req.param("id");
+      const { name, apiBaseurl, headers } = c.req.valid("json");
+      const website = await prisma.website.update({
+        where: { id },
+        data: { name, apiBaseurl, headers: JSON.parse(headers) },
+      });
+      return c.json(website);
+    }
+  )
+  .delete("/websites/:id", sessionMiddleware, adminMiddleware, async (c) => {
     const id = c.req.param("id");
     await prisma.website.delete({
       where: { id },
@@ -194,7 +244,7 @@ const routes = app
     return c.json({ message: "Website deleted successfully" });
   })
   // Product management
-  .get("/products", async (c) => {
+  .get("/products", sessionMiddleware, adminMiddleware, async (c) => {
     const { page, limit, skip } = getPaginationParams(c.req);
 
     const [products, total] = await Promise.all([
@@ -222,7 +272,7 @@ const routes = app
       },
     });
   })
-  .get("/products/:id", async (c) => {
+  .get("/products/:id", sessionMiddleware, adminMiddleware, async (c) => {
     const id = c.req.param("id");
     const product = await prisma.product.findUnique({
       where: { id },
@@ -245,23 +295,35 @@ const routes = app
     }
     return c.json(product);
   })
-  .post("/products", vValidator("json", productSchema), async (c) => {
-    const { name } = c.req.valid("json");
-    const product = await prisma.product.create({
-      data: { name },
-    });
-    return c.json(product);
-  })
-  .put("/products/:id", vValidator("json", productSchema), async (c) => {
-    const id = c.req.param("id");
-    const { name } = c.req.valid("json");
-    const product = await prisma.product.update({
-      where: { id },
-      data: { name },
-    });
-    return c.json(product);
-  })
-  .delete("/products/:id", async (c) => {
+  .post(
+    "/products",
+    sessionMiddleware,
+    adminMiddleware,
+    vValidator("json", productSchema),
+    async (c) => {
+      const { name } = c.req.valid("json");
+      const product = await prisma.product.create({
+        data: { name },
+      });
+      return c.json(product);
+    }
+  )
+  .put(
+    "/products/:id",
+    sessionMiddleware,
+    adminMiddleware,
+    vValidator("json", productSchema),
+    async (c) => {
+      const id = c.req.param("id");
+      const { name } = c.req.valid("json");
+      const product = await prisma.product.update({
+        where: { id },
+        data: { name },
+      });
+      return c.json(product);
+    }
+  )
+  .delete("/products/:id", sessionMiddleware, adminMiddleware, async (c) => {
     const id = c.req.param("id");
     await prisma.product.delete({
       where: { id },

@@ -12,7 +12,7 @@ import {
 } from "@/utils/errors";
 import { lucia } from "@/config/lucia";
 import { generateToken } from "@/utils/generateToken";
-import { stripe } from "@/stripe/service";
+// import { stripe } from "@/stripe/service";
 import { emailService } from "@/utils/email";
 import { sessionMiddleware } from "./middleware/sessionMiddleware";
 import { ADMIN_EMAILS } from "@/config/env";
@@ -75,7 +75,11 @@ const routes = app
       throw new UnauthorizedError("No user found");
     }
 
-    return c.json({ id: `${user.id}`, email: `${user.email}` });
+    return c.json({
+      id: `${user.id}`,
+      email: `${user.email}`,
+      isAdmin: user.isAdmin,
+    });
   })
   .post("/register", vValidator("json", registerSchema), async (c) => {
     const { password, email } = c.req.valid("json");
