@@ -123,9 +123,10 @@ const routes = app
       throw new NotFoundError("Invalid token");
     }
 
-    const customer = await stripe.customers.create({
-      email: user.email,
-    });
+    // TODO: uncomment this when we want to use stripe
+    // const customer = await stripe.customers.create({
+    //   email: user.email,
+    // });
 
     await prisma.user.update({
       where: {
@@ -135,7 +136,7 @@ const routes = app
         emailVerifiedAt: new Date(),
         isEmailVerified: true,
         verificationToken: null,
-        stripeId: customer.id,
+        // stripeId: customer.id,
       },
     });
 
