@@ -7,6 +7,7 @@ import {
   url,
   enum as vEnum,
   parse,
+  optional,
 } from "valibot";
 
 config();
@@ -25,6 +26,7 @@ const envSchema = object({
   STRIPE_BASIC_PRICE_ID: string(),
   STRIPE_STANDARD_PRICE_ID: string(),
   STRIPE_PREMIUM_PRICE_ID: string(),
+  ADMIN_EMAILS: optional(string()),
 });
 
 const env = parse(envSchema, {
@@ -40,4 +42,5 @@ export const {
   STRIPE_BASIC_PRICE_ID,
   STRIPE_STANDARD_PRICE_ID,
   STRIPE_PREMIUM_PRICE_ID,
+  ADMIN_EMAILS,
 } = env;

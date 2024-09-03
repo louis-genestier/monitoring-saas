@@ -15,6 +15,7 @@ import { generateToken } from "@/utils/generateToken";
 import { stripe } from "@/stripe/service";
 import { emailService } from "@/utils/email";
 import { sessionMiddleware } from "./middleware/sessionMiddleware";
+import { ADMIN_EMAILS } from "@/config/env";
 
 const app = new Hono<Context>();
 
@@ -79,6 +80,8 @@ const routes = app
   .post("/register", vValidator("json", registerSchema), async (c) => {
     const { password, email } = c.req.valid("json");
 
+    const isAdmin = ADMIN_EMAILS?.split(",").includes(email);
+
     const foundUser = await prisma.user.findUnique({
       where: {
         email,
@@ -96,6 +99,7 @@ const routes = app
         email,
         password: await hash(password, 12),
         verificationToken,
+        isAdmin,
       },
     });
 
