@@ -41,6 +41,8 @@ export const authProvider: AuthProvider = {
       };
     }
 
+    await client.auth.logout.$post({});
+
     return {
       authenticated: false,
       redirectTo: "/login",

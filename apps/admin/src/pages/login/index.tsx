@@ -7,6 +7,9 @@ export const Login = () => {
       formProps={{
         defaultValues: { email: "", password: "" },
       }}
+      registerLink={false}
+      forgotPasswordLink={false}
+      rememberMe={false}
     />
   );
 };
