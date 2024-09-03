@@ -1,9 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { AppType } from "api";
-import { hc } from "hono/client";
 import { useAuthStore } from "../store/authStore";
-
-const client = hc<AppType>("/api");
+import { client } from "@repo/front-logic";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {

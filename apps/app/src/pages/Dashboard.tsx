@@ -1,5 +1,5 @@
 import { Button } from "@repo/ui";
-import { client } from "../api/utils";
+import { client } from "@repo/front-logic";
 import { useNavigate } from "@tanstack/react-router";
 import { Route } from "../routes/_authenticated";
 

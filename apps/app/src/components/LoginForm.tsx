@@ -17,7 +17,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { client } from "../api/utils";
+import { client } from "@repo/front-logic";
+
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(12),

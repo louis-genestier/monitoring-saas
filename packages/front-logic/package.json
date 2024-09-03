@@ -1,0 +1,24 @@
+{
+  "name": "@repo/front-logic",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@turbo/gen": "^1.12.4",
+    "@types/eslint": "^8.56.5",
+    "@types/node": "^20.11.24",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "api": "workspace:*",
+    "hono": "^4.5.4"
+  }
+}
