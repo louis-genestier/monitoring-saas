@@ -5,12 +5,13 @@ import { Context } from "@/types/honoContext";
 import { getPaginationParams } from "@/utils/pagination";
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
-import { object, string } from "valibot";
+import { boolean, object, string } from "valibot";
 
 const websiteSchema = object({
   name: string(),
   apiBaseurl: string(),
   headers: string(),
+  isEnabled: boolean(),
 });
 
 const app = new Hono<Context>();
@@ -49,15 +50,36 @@ const routes = app
     adminMiddleware,
     vValidator("json", websiteSchema),
     async (c) => {
-      const { name, apiBaseurl, headers } = c.req.valid("json");
+      const { name, apiBaseurl, headers, isEnabled } = c.req.valid("json");
+
+      let parsedHeaders;
+
+      try {
+        // If headers is already an object, use it as is
+        // If it's a string, attempt to parse it
+        parsedHeaders =
+          typeof headers === "object" ? headers : JSON.parse(headers);
+      } catch (error) {
+        return c.json({ error: "Invalid JSON in headers" }, 400);
+      }
+
+      if (typeof parsedHeaders !== "object" || parsedHeaders === null) {
+        return c.json({ error: "Headers must be a valid JSON object" }, 400);
+      }
+
       const website = await prisma.website.create({
         data: {
           apiBaseurl,
           name,
-          headers: JSON.parse(headers),
+          headers: parsedHeaders,
+          isEnabled,
         },
       });
-      return c.json(website);
+
+      return c.json({
+        ...website,
+        headers: JSON.stringify(website.headers),
+      });
     }
   )
   .put(

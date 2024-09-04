@@ -184,9 +184,8 @@ const routes = app
     }, 0);
 
     return c.json({ monthlyRecurringRevenue: revenue });
-  });
-
-routes.route("/products", productsRoutes);
-routes.route("/websites", websitesRoutes);
+  })
+  .route("/products", productsRoutes)
+  .route("/websites", websitesRoutes);
 
 export { routes as adminRoutes };

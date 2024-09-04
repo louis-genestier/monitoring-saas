@@ -7,6 +7,7 @@ export {
   FormMessage,
   FormItem,
   FormLabel,
+  FormDescription,
 } from "./ui/form";
 export {
   Select,
@@ -15,7 +16,14 @@ export {
   SelectItem,
   SelectValue,
 } from "./ui/select";
-export { Dialog } from "./ui/dialog";
+export {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "./ui/dialog";
 export { DropdownMenu } from "./ui/dropdown-menu";
 export {
   Card,
@@ -29,7 +37,17 @@ export { Avatar } from "./ui/avatar";
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 export { Toast } from "./ui/toast";
 export { Toggle } from "./ui/toggle";
-export { Table } from "./ui/table";
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "./ui/table";
 export { Label } from "./ui/label";
 export { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 export * from "@radix-ui/react-icons";
+export { Switch } from "./ui/switch";
+export { Checkbox } from "./ui/checkbox";
+export { Textarea } from "./ui/textarea";
