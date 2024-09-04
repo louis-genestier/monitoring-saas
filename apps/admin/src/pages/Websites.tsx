@@ -46,6 +46,7 @@ const websiteSchema = z.object({
   name: z.string().min(1, "Website name is required"),
   apiBaseurl: z.string().url("Must be a valid URL"),
   headers: z.string(),
+  parameters: z.string().optional(),
   isEnabled: z.boolean(),
 });
 
@@ -67,6 +68,7 @@ export const Websites: React.FC = () => {
       name: "",
       apiBaseurl: "",
       headers: "{}",
+      parameters: "",
       isEnabled: true,
     },
   });
@@ -97,6 +99,17 @@ export const Websites: React.FC = () => {
       client.admin.websites[":id"].$delete({ param: { id } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["websites"] });
+    },
+  });
+
+  const testWebsiteMutation = useMutation({
+    mutationFn: (id: string) =>
+      client.admin.websites[":id"].test.$get({ param: { id } }),
+    onSuccess: (data) => {
+      alert(`Website test ${data.ok ? "succeeded" : "failed"}`);
+    },
+    onError: (error) => {
+      alert(`Test failed: ${error.message}`);
     },
   });
 
@@ -146,6 +159,7 @@ export const Websites: React.FC = () => {
       name: website.name,
       apiBaseurl: website.apiBaseurl,
       headers: website.headers,
+      parameters: website.parameters || "",
       isEnabled: website.isEnabled,
     });
     setIsDialogOpen(true);
@@ -171,8 +185,13 @@ export const Websites: React.FC = () => {
       name: "",
       apiBaseurl: "",
       headers: "{}",
+      parameters: "",
       isEnabled: true,
     });
+  };
+
+  const handleTest = (id: string) => {
+    testWebsiteMutation.mutate(id);
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -244,6 +263,15 @@ export const Websites: React.FC = () => {
                         Edit
                       </Button>
                       <Button
+                        onClick={() => handleTest(website.id)}
+                        variant="outline"
+                        size="sm"
+                        className="mr-2"
+                      >
+                        <GlobeIcon className="w-4 h-4 mr-1" />
+                        Test
+                      </Button>
+                      <Button
                         onClick={() => handleDelete(website.id)}
                         variant="destructive"
                         size="sm"
@@ -309,6 +337,22 @@ export const Websites: React.FC = () => {
                     <FormControl>
                       <Textarea {...field} rows={4} className="w-full" />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="parameters"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Parameters</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="w-full" />
+                    </FormControl>
+                    <FormDescription>
+                      Optional field for additional parameters
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

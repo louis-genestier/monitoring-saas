@@ -5,13 +5,14 @@ import { Context } from "@/types/honoContext";
 import { getPaginationParams } from "@/utils/pagination";
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
-import { boolean, object, string } from "valibot";
+import { boolean, object, optional, string } from "valibot";
 
 const websiteSchema = object({
   name: string(),
   apiBaseurl: string(),
   headers: string(),
   isEnabled: boolean(),
+  parameters: optional(string()),
 });
 
 const app = new Hono<Context>();
@@ -50,7 +51,8 @@ const routes = app
     adminMiddleware,
     vValidator("json", websiteSchema),
     async (c) => {
-      const { name, apiBaseurl, headers, isEnabled } = c.req.valid("json");
+      const { name, apiBaseurl, headers, isEnabled, parameters } =
+        c.req.valid("json");
 
       let parsedHeaders;
 
@@ -73,6 +75,7 @@ const routes = app
           name,
           headers: parsedHeaders,
           isEnabled,
+          parameters,
         },
       });
 
@@ -107,6 +110,35 @@ const routes = app
       where: { id },
     });
     return c.json({ message: "Website deleted successfully" });
+  })
+  .get("/:id/test", sessionMiddleware, adminMiddleware, async (c) => {
+    const id = c.req.param("id");
+    const website = await prisma.website.findUnique({
+      where: { id },
+    });
+
+    const productId = await prisma.productId.findFirst({
+      where: {
+        websiteId: website?.id,
+      },
+    });
+
+    if (!website || !productId) {
+      return c.json({ error: "Website or product not found" }, 404);
+    }
+
+    try {
+      const response = await fetch(
+        `${website?.apiBaseurl}${productId?.externalId}${website?.parameters ? `?${website?.parameters}` : ""}`,
+        {
+          headers: website?.headers as HeadersInit,
+        }
+      );
+      const data = await response.json();
+      return c.json({ data });
+    } catch (error) {
+      return c.json({ error: "Failed to fetch product" }, 500);
+    }
   });
 
 export { routes as websitesRoutes };
