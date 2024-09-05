@@ -114,9 +114,6 @@ importers:
       '@lucia-auth/adapter-prisma':
         specifier: ^4.0.1
         version: 4.0.1(@prisma/client@5.19.1)(lucia@3.2.0)
-      '@prisma/client':
-        specifier: ^5.19.1
-        version: 5.19.1(prisma@5.19.1)
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
@@ -139,15 +136,15 @@ importers:
         specifier: ^0.37.0
         version: 0.37.0(typescript@5.4.5)
     devDependencies:
+      '@repo/prisma-client':
+        specifier: workspace:*
+        version: link:../../packages/prisma-client
       '@types/bcrypt':
         specifier: ^5.0.2
         version: 5.0.2
       '@types/node':
         specifier: ^20.11.17
         version: 20.11.24
-      prisma:
-        specifier: ^5.19.1
-        version: 5.19.1
       tsx:
         specifier: ^4.7.1
         version: 4.16.5
@@ -321,6 +318,19 @@ importers:
         version: 8.57.0
       typescript:
         specifier: ^5.3.3
+        version: 5.5.4
+
+  packages/prisma-client:
+    dependencies:
+      '@prisma/client':
+        specifier: ^5.19.1
+        version: 5.19.1(prisma@5.19.1)
+    devDependencies:
+      prisma:
+        specifier: ^5.19.1
+        version: 5.19.1
+      typescript:
+        specifier: ^5.5.3
         version: 5.5.4
 
   packages/typescript-config: {}
@@ -5462,7 +5472,7 @@ packages:
       debug: 4.3.6
       enhanced-resolve: 5.15.0
       eslint: 8.57.0
-      eslint-module-utils: 2.8.0(@typescript-eslint/parser@6.17.0)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-module-utils: 2.8.0(@typescript-eslint/parser@6.17.0)(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       eslint-plugin-import: 2.29.0(@typescript-eslint/parser@7.1.0)(eslint@8.57.0)
       fast-glob: 3.3.1
       get-tsconfig: 4.7.2
@@ -5475,7 +5485,7 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-module-utils@2.8.0(@typescript-eslint/parser@6.17.0)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0):
+  /eslint-module-utils@2.8.0(@typescript-eslint/parser@6.17.0)(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0):
     resolution: {integrity: sha512-aWajIYfsqCKRDgUfjEXNN/JlrzauMuSEy5sbd7WXbtW3EH6A6MpwEh42c7qD+MqQo9QMJ6fWLAeIJynx0g6OAw==}
     engines: {node: '>=4'}
     peerDependencies:
@@ -5499,6 +5509,7 @@ packages:
       '@typescript-eslint/parser': 6.17.0(eslint@8.57.0)(typescript@5.3.3)
       debug: 3.2.7
       eslint: 8.57.0
+      eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@6.17.0)(eslint-plugin-import@2.29.0)(eslint@8.57.0)
     transitivePeerDependencies:
       - supports-color
