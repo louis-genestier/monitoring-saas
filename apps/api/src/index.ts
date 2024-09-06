@@ -7,6 +7,7 @@ import { stripeRoutes } from "./stripe/controller";
 import { adminRoutes } from "./admin/controller";
 import { trackedProductsRoutes } from "./trackedProducts/controller";
 import { cors } from "hono/cors";
+import { productsRoutes } from "./products/controller";
 
 const app = new Hono();
 
@@ -24,6 +25,7 @@ const routes = app
   .route("/stripe", stripeRoutes)
   .route("/admin", adminRoutes)
   .route("/tracked-products", trackedProductsRoutes)
+  .route("/products", productsRoutes)
   .get("/health", (c) => {
     return c.json({ status: "ok" });
   })
