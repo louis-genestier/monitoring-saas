@@ -5,6 +5,7 @@ import { PORT, NODE_ENV } from "./config/env";
 import { AppError } from "./utils/errors";
 import { stripeRoutes } from "./stripe/controller";
 import { adminRoutes } from "./admin/controller";
+import { trackedProductsRoutes } from "./trackedProducts/controller";
 import { cors } from "hono/cors";
 
 const app = new Hono();
@@ -22,6 +23,7 @@ const routes = app
   .route("/auth", authRoutes)
   .route("/stripe", stripeRoutes)
   .route("/admin", adminRoutes)
+  .route("/tracked-products", trackedProductsRoutes)
   .get("/health", (c) => {
     return c.json({ status: "ok" });
   })
