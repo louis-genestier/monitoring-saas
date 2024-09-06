@@ -176,9 +176,12 @@ const fetchPrices = async () => {
 
       if (prices?.new || prices?.used) {
         if (prices.new) {
-          logger.info(
-            `[${website.name}] Price for ${product.name} is ${prices.new}€ (new)`
-          );
+          logger.info({
+            website: website.name,
+            productName: product.name,
+            price: prices.new,
+            priceType: PriceType.NEW,
+          });
 
           createPricePointAndCheckAlert(
             product,
@@ -218,9 +221,12 @@ const fetchPrices = async () => {
         }
 
         if (prices.used) {
-          logger.info(
-            `[${website.name}] Price for ${product.name} is ${prices.used}€ (used)`
-          );
+          logger.info({
+            website: website.name,
+            productName: product.name,
+            price: prices.used,
+            priceType: PriceType.USED,
+          });
 
           createPricePointAndCheckAlert(
             product,
