@@ -1,4 +1,5 @@
 import { lucia } from "@/config/lucia";
+import { UnauthorizedError } from "@/utils/errors";
 import { MiddlewareHandler } from "hono";
 
 export const sessionMiddleware: MiddlewareHandler = async (c, next) => {
@@ -7,7 +8,7 @@ export const sessionMiddleware: MiddlewareHandler = async (c, next) => {
   if (!sessionId) {
     c.set("user", null);
     c.set("session", null);
-    return next();
+    throw new UnauthorizedError("No session found");
   }
 
   const { session, user } = await lucia.validateSession(sessionId);
@@ -22,6 +23,8 @@ export const sessionMiddleware: MiddlewareHandler = async (c, next) => {
     c.header("Set-Cookie", lucia.createBlankSessionCookie().serialize(), {
       append: true,
     });
+
+    throw new UnauthorizedError("No session found");
   }
 
   c.set("session", session);
