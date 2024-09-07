@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui";
-import { DeleteDialog } from "./DeleteDialog";
+import { DeleteDialog } from "../components/DeleteDialog";
 import { Link } from "@tanstack/react-router";
 
 export const TrackedProductsTable = () => {
