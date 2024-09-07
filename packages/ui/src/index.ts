@@ -1,4 +1,5 @@
 export { Button } from "./ui/button";
+export { Combobox } from "./ui/combobox";
 export { Input } from "./ui/input";
 export {
   Form,
