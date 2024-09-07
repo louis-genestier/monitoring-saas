@@ -14,6 +14,9 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSuiviAjouterImport } from './routes/_authenticated/suivi/ajouter'
+import { Route as AuthenticatedSuiviTrackedProductIdIndexImport } from './routes/_authenticated/suivi/$trackedProductId/index'
+import { Route as AuthenticatedSuiviTrackedProductIdModifierImport } from './routes/_authenticated/suivi/$trackedProductId/modifier'
 
 // Create/Update Routes
 
@@ -31,6 +34,23 @@ const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+
+const AuthenticatedSuiviAjouterRoute = AuthenticatedSuiviAjouterImport.update({
+  path: '/suivi/ajouter',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedSuiviTrackedProductIdIndexRoute =
+  AuthenticatedSuiviTrackedProductIdIndexImport.update({
+    path: '/suivi/$trackedProductId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+const AuthenticatedSuiviTrackedProductIdModifierRoute =
+  AuthenticatedSuiviTrackedProductIdModifierImport.update({
+    path: '/suivi/$trackedProductId/modifier',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -57,6 +77,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/suivi/ajouter': {
+      id: '/_authenticated/suivi/ajouter'
+      path: '/suivi/ajouter'
+      fullPath: '/suivi/ajouter'
+      preLoaderRoute: typeof AuthenticatedSuiviAjouterImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/suivi/$trackedProductId/modifier': {
+      id: '/_authenticated/suivi/$trackedProductId/modifier'
+      path: '/suivi/$trackedProductId/modifier'
+      fullPath: '/suivi/$trackedProductId/modifier'
+      preLoaderRoute: typeof AuthenticatedSuiviTrackedProductIdModifierImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/suivi/$trackedProductId/': {
+      id: '/_authenticated/suivi/$trackedProductId/'
+      path: '/suivi/$trackedProductId'
+      fullPath: '/suivi/$trackedProductId'
+      preLoaderRoute: typeof AuthenticatedSuiviTrackedProductIdIndexImport
+      parentRoute: typeof AuthenticatedImport
+    }
   }
 }
 
@@ -65,6 +106,9 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   AuthenticatedRoute: AuthenticatedRoute.addChildren({
     AuthenticatedIndexRoute,
+    AuthenticatedSuiviAjouterRoute,
+    AuthenticatedSuiviTrackedProductIdModifierRoute,
+    AuthenticatedSuiviTrackedProductIdIndexRoute,
   }),
   LoginRoute,
 })
@@ -84,7 +128,10 @@ export const routeTree = rootRoute.addChildren({
     "/_authenticated": {
       "filePath": "_authenticated.tsx",
       "children": [
-        "/_authenticated/"
+        "/_authenticated/",
+        "/_authenticated/suivi/ajouter",
+        "/_authenticated/suivi/$trackedProductId/modifier",
+        "/_authenticated/suivi/$trackedProductId/"
       ]
     },
     "/login": {
@@ -92,6 +139,18 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_authenticated/": {
       "filePath": "_authenticated/index.ts",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/suivi/ajouter": {
+      "filePath": "_authenticated/suivi/ajouter.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/suivi/$trackedProductId/modifier": {
+      "filePath": "_authenticated/suivi/$trackedProductId/modifier.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/suivi/$trackedProductId/": {
+      "filePath": "_authenticated/suivi/$trackedProductId/index.tsx",
       "parent": "/_authenticated"
     }
   }

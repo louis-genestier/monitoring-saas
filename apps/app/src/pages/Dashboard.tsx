@@ -1,26 +1,9 @@
-import { Button } from "@repo/ui";
-import { client } from "@repo/front-logic";
-import { useNavigate } from "@tanstack/react-router";
-import { Route } from "../routes/_authenticated";
+import { TrackedProductsTable } from "../components/trackedProductsTable";
 
 export const Dashboard = () => {
-  const user = Route.useLoaderData();
-  const navigate = useNavigate();
-
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome, {user.email}!</p>
-      <Button
-        onClick={async () => {
-          await client.auth.logout.$post();
-          navigate({
-            to: "/login",
-          });
-        }}
-      >
-        Logout
-      </Button>
+    <div className="w-screen">
+      <TrackedProductsTable />
     </div>
   );
 };

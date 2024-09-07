@@ -6,8 +6,12 @@ export default {
     "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    fontFamily: {
+      sans: ["Aeonik", "sans-serif"],
+    },
     extend: {
       colors: {
+        white: "#fefefe",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
