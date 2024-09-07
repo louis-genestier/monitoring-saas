@@ -23,6 +23,8 @@ export {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from "./ui/dialog";
 export { DropdownMenu } from "./ui/dropdown-menu";
 export {
