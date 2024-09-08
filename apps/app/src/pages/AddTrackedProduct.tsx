@@ -29,6 +29,7 @@ import { ReturnToDashboard } from "../components/ReturnToDashboard";
 import { useAlertProviders } from "../queries/alertProviders.queries";
 import { useNavigate } from "@tanstack/react-router";
 import { useProducts } from "../queries/products.queries";
+import { OnboardingTooltip } from "../components/OnboardingTooltip";
 
 const PriceType = {
   NEW: "NEW",
@@ -93,8 +94,6 @@ export const AddTrackedProduct = () => {
     );
   };
 
-  console.log(form.getValues());
-
   return (
     <div className="container mx-auto p-4 xl:w-4/5">
       <ReturnToDashboard />
@@ -117,8 +116,11 @@ export const AddTrackedProduct = () => {
                   control={form.control}
                   name="productId"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col gap-2">
-                      <FormLabel>Produit</FormLabel>
+                    <FormItem>
+                      <FormLabel className="flex items-center">
+                        <span>Produit</span>
+                        <OnboardingTooltip content="Sélectionnez le produit que vous souhaitez suivre. Vous pouvez rechercher par nom ou référence." />
+                      </FormLabel>
                       <Combobox
                         options={
                           products?.items.map((product) => ({
@@ -142,7 +144,10 @@ export const AddTrackedProduct = () => {
                   name="threshold"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Seuil de prix</FormLabel>
+                      <FormLabel className="flex items-center">
+                        <span>Seuil de prix</span>
+                        <OnboardingTooltip content="Définissez le prix en dessous duquel vous souhaitez être alerté. Vous recevrez une notification lorsque le prix du produit passera sous ce seuil." />
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -151,6 +156,7 @@ export const AddTrackedProduct = () => {
                           onChange={(e) =>
                             field.onChange(parseFloat(e.target.value))
                           }
+                          id="threshold-input"
                         />
                       </FormControl>
                       <FormDescription>
@@ -164,8 +170,11 @@ export const AddTrackedProduct = () => {
                   control={form.control}
                   name="alertProviderId"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type d'alerte</FormLabel>
+                    <FormItem id="alert-provider-select">
+                      <FormLabel className="flex items-center">
+                        <span>Type d'alerte</span>
+                        <OnboardingTooltip content="Choisissez comment vous souhaitez recevoir les alertes. Vous pouvez opter pour des notifications par email ou d'autres moyens disponibles." />
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -198,8 +207,11 @@ export const AddTrackedProduct = () => {
                   control={form.control}
                   name="priceType"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Neuf ou d'occasion</FormLabel>
+                    <FormItem id="price-type-select">
+                      <FormLabel className="flex items-center">
+                        <span>Neuf ou d'occasion</span>
+                        <OnboardingTooltip content="Indiquez si vous souhaitez suivre le prix des produits neufs ou d'occasion. Cela peut affecter les alertes que vous recevez." />
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -229,7 +241,10 @@ export const AddTrackedProduct = () => {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Activation</FormLabel>
+                        <FormLabel className="text-base flex items-center gap-2">
+                          <span>Activation</span>
+                          <OnboardingTooltip content="Activez ou désactivez le suivi de ce produit. Lorsqu'il est activé, vous recevrez des alertes selon vos paramètres." />
+                        </FormLabel>
                         <FormDescription>
                           Recevoir des alertes pour ce produit suivi
                         </FormDescription>
