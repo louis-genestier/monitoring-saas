@@ -181,7 +181,7 @@ export const AddTrackedProduct = () => {
                         disabled={!!isAlertProvidersLoading}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="focus:ring-0">
                             <SelectValue placeholder="Choisir un type d'alerte" />
                           </SelectTrigger>
                         </FormControl>
@@ -190,6 +190,7 @@ export const AddTrackedProduct = () => {
                             <SelectItem
                               value={alertProvider.id}
                               key={alertProvider.id}
+                              className="data-[state=checked]:bg-gray-200 data-[state=checked]:text-black"
                             >
                               {alertProvider.name}
                             </SelectItem>
@@ -217,13 +218,21 @@ export const AddTrackedProduct = () => {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="focus:ring-0">
                             <SelectValue placeholder="Choisir le type de produit" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value={PriceType.NEW}>Neuf</SelectItem>
-                          <SelectItem value={PriceType.USED}>
+                          <SelectItem
+                            value={PriceType.NEW}
+                            className="data-[state=checked]:bg-gray-200 data-[state=checked]:text-black hover:bg-gray-100"
+                          >
+                            Neuf
+                          </SelectItem>
+                          <SelectItem
+                            value={PriceType.USED}
+                            className="data-[state=checked]:bg-gray-200 data-[state=checked]:text-black hover:bg-gray-100"
+                          >
                             D'occasion
                           </SelectItem>
                         </SelectContent>
