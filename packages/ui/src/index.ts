@@ -54,3 +54,9 @@ export * from "@radix-ui/react-icons";
 export { Switch } from "./ui/switch";
 export { Checkbox } from "./ui/checkbox";
 export { Textarea } from "./ui/textarea";
+export {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
