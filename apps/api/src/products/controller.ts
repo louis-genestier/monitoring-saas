@@ -3,13 +3,14 @@ import { prisma } from "@/config/prisma";
 import { Context } from "@/types/honoContext";
 import { NotFoundError, UnauthorizedError } from "@/utils/errors";
 import { getPaginationParams } from "@/utils/pagination";
+import { rateLimiterInstance } from "@/utils/rateLimit";
 import { Hono } from "hono";
 
 const app = new Hono<Context>();
 
 const routes = app
   .use("*", sessionMiddleware)
-  .get("/", async (c) => {
+  .get("/", rateLimiterInstance(30, 1), async (c) => {
     const { page, limit, skip } = getPaginationParams(c.req);
     const user = c.get("user");
 
@@ -42,7 +43,7 @@ const routes = app
       },
     });
   })
-  .get("/:id", async (c) => {
+  .get("/:id", rateLimiterInstance(10, 1), async (c) => {
     const id = c.req.param("id");
     const user = c.get("user");
 

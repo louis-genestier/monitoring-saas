@@ -53,6 +53,12 @@ export const LoginForm = () => {
         setApiError("L'email n'est pas vérifié");
       }
 
+      if (response.status === 429) {
+        setApiError(
+          "Trop de tentatives de connexion, veuillez réessayer plus tard"
+        );
+      }
+
       setApiError("Une erreur s'est produite, veuillez réessayer");
     }
   };

@@ -17,15 +17,16 @@
     "dotenv": "^16.4.5",
     "eta": "^3.4.1",
     "hono": "^4.5.4",
+    "hono-rate-limiter": "^0.4.0",
     "lucia": "^3.2.0",
     "stripe": "^16.7.0",
     "valibot": "^0.37.0"
   },
   "devDependencies": {
+    "@repo/prisma-client": "workspace:*",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.11.17",
-    "tsx": "^4.7.1",
-    "@repo/prisma-client": "workspace:*",
-    "prisma": "^5.19.1"
+    "prisma": "^5.19.1",
+    "tsx": "^4.7.1"
   }
 }

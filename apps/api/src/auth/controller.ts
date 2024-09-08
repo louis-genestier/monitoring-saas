@@ -16,6 +16,7 @@ import { generateToken } from "@/utils/generateToken";
 import { emailService } from "@/utils/email";
 import { sessionMiddleware } from "./middleware/sessionMiddleware";
 import { ADMIN_EMAILS } from "@/config/env";
+import { rateLimiterInstance } from "@/utils/rateLimit";
 
 const app = new Hono<Context>();
 
@@ -38,36 +39,41 @@ const resetPasswordSchema = object({
 });
 
 const routes = app
-  .post("/login", vValidator("json", loginSchema), async (c) => {
-    const { password, email } = c.req.valid("json");
+  .post(
+    "/login",
+    rateLimiterInstance(5, 1),
+    vValidator("json", loginSchema),
+    async (c) => {
+      const { password, email } = c.req.valid("json");
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
 
-    const passwordHash = user?.password ?? "$2a$12$" + "a".repeat(53);
-    const isValidPassword = await compare(password, passwordHash);
+      const passwordHash = user?.password ?? "$2a$12$" + "a".repeat(53);
+      const isValidPassword = await compare(password, passwordHash);
 
-    if (isValidPassword && user) {
-      if (!user.isEmailVerified) {
-        throw new ForbiddenError("Email is not verified");
-      }
-      const session = await lucia.createSession(user.id, {});
-      c.header(
-        "Set-Cookie",
-        lucia.createSessionCookie(session.id).serialize(),
-        {
-          append: true,
+      if (isValidPassword && user) {
+        if (!user.isEmailVerified) {
+          throw new ForbiddenError("Email is not verified");
         }
-      );
+        const session = await lucia.createSession(user.id, {});
+        c.header(
+          "Set-Cookie",
+          lucia.createSessionCookie(session.id).serialize(),
+          {
+            append: true,
+          }
+        );
 
-      return c.json({ message: "Logged in successfully" });
-    } else {
-      throw new UnauthorizedError("Invalid email or password");
+        return c.json({ message: "Logged in successfully" });
+      } else {
+        throw new UnauthorizedError("Invalid email or password");
+      }
     }
-  })
+  )
   .get("/me", sessionMiddleware, async (c) => {
     const user = c.get("user");
 
@@ -81,41 +87,46 @@ const routes = app
       isAdmin: user.isAdmin,
     });
   })
-  .post("/register", vValidator("json", registerSchema), async (c) => {
-    const { password, email } = c.req.valid("json");
+  .post(
+    "/register",
+    rateLimiterInstance(5, 1),
+    vValidator("json", registerSchema),
+    async (c) => {
+      const { password, email } = c.req.valid("json");
 
-    const isAdmin = ADMIN_EMAILS?.split(",").includes(email);
+      const isAdmin = ADMIN_EMAILS?.split(",").includes(email);
 
-    const foundUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+      const foundUser = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
 
-    if (foundUser) {
-      throw new ConflictError("User already exists");
+      if (foundUser) {
+        throw new ConflictError("User already exists");
+      }
+
+      const verificationToken = generateToken();
+
+      await prisma.user.create({
+        data: {
+          email,
+          password: await hash(password, 12),
+          verificationToken,
+          isAdmin,
+        },
+      });
+
+      await emailService.sendWelcomeEmail({
+        userEmail: email,
+        // TODO: Change this to the frontend URL
+        verifyUrl: `http://localhost:3000/auth/verify-email/${verificationToken}`,
+      });
+
+      return c.json({ message: "User registered" });
     }
-
-    const verificationToken = generateToken();
-
-    await prisma.user.create({
-      data: {
-        email,
-        password: await hash(password, 12),
-        verificationToken,
-        isAdmin,
-      },
-    });
-
-    await emailService.sendWelcomeEmail({
-      userEmail: email,
-      // TODO: Change this to the frontend URL
-      verifyUrl: `http://localhost:3000/auth/verify-email/${verificationToken}`,
-    });
-
-    return c.json({ message: "User registered" });
-  })
-  .get("/verify-email/:token", async (c) => {
+  )
+  .get("/verify-email/:token", rateLimiterInstance(5, 1), async (c) => {
     const token = c.req.param("token");
     const user = await prisma.user.findFirst({
       where: {
@@ -148,6 +159,7 @@ const routes = app
   })
   .post(
     "/forgot-password",
+    rateLimiterInstance(5, 1),
     vValidator("json", forgotPasswordSchema),
     async (c) => {
       const { email } = c.req.valid("json");
@@ -179,7 +191,7 @@ const routes = app
       });
     }
   )
-  .get("/reset-password/:token", async (c) => {
+  .get("/reset-password/:token", rateLimiterInstance(5, 1), async (c) => {
     const token = c.req.param("token");
 
     const user = await prisma.user.findFirst({
@@ -199,6 +211,7 @@ const routes = app
   })
   .post(
     "/reset-password/:token",
+    rateLimiterInstance(5, 1),
     vValidator("json", resetPasswordSchema),
     async (c) => {
       const token = c.req.param("token");
