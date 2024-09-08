@@ -21,14 +21,16 @@ import { z } from "zod";
 
 const registerSchema = z
   .object({
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(12, "Password must be at least 12 characters"),
+    email: z.string().email("Adresse e-mail invalide"),
+    password: z
+      .string()
+      .min(12, "Le mot de passe doit contenir au moins 12 caractères"),
     confirmPassword: z
       .string()
-      .min(12, "Password must be at least 12 characters"),
+      .min(12, "Le mot de passe doit contenir au moins 12 caractères"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Les mots de passe ne correspondent pas",
     path: ["confirmPassword"],
   });
 
@@ -57,14 +59,14 @@ export const RegisterForm = () => {
         setSuccess(true);
       } else {
         if (response.status === 409) {
-          setApiError("Email already in use");
+          setApiError("Cet e-mail est déjà utilisé");
         } else {
-          setApiError("Something went wrong, please try again");
+          setApiError("Une erreur s'est produite, veuillez réessayer");
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      setApiError("An unexpected error occurred. Please try again.");
+      setApiError("Une erreur inattendue s'est produite. Veuillez réessayer.");
     }
   };
 
@@ -74,16 +76,17 @@ export const RegisterForm = () => {
         {apiError && (
           <Alert variant="destructive" className="mb-2">
             <ExclamationTriangleIcon className="w-5 h-5" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Erreur</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         )}
         {success && (
           <Alert variant="success" className="mb-2">
             <CheckCircledIcon className="w-5 h-5" />
-            <AlertTitle>Success</AlertTitle>
+            <AlertTitle>Succès</AlertTitle>
             <AlertDescription>
-              Account created successfully, please verify your email to login.
+              Compte créé avec succès, veuillez vérifier votre e-mail pour vous
+              connecter.
             </AlertDescription>
           </Alert>
         )}
@@ -92,12 +95,12 @@ export const RegisterForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>E-mail</FormLabel>
               <FormControl>
                 <Input
                   {...field}
                   type="email"
-                  placeholder="john@example.com"
+                  placeholder="jean@exemple.com"
                   className="w-full p-2 rounded-md"
                 />
               </FormControl>
@@ -110,7 +113,7 @@ export const RegisterForm = () => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Mot de passe</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -128,7 +131,7 @@ export const RegisterForm = () => {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>Confirmer le mot de passe</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -146,7 +149,7 @@ export const RegisterForm = () => {
           className="w-full py-2 mt-2 bg-indigo-600 hover:bg-indigo-700 text-white"
           disabled={form.formState.isSubmitting || !form.formState.isValid}
         >
-          Create Account
+          Créer un compte
         </Button>
       </form>
     </Form>

@@ -46,14 +46,14 @@ export const LoginForm = () => {
       });
     } else {
       if (response.status === 401) {
-        setApiError("Invalid email or password");
+        setApiError("Email ou mot de passe invalide");
       }
 
       if (response.status === 403) {
-        setApiError("Email is not verified");
+        setApiError("L'email n'est pas vérifié");
       }
 
-      setApiError("Something went wrong, please try again");
+      setApiError("Une erreur s'est produite, veuillez réessayer");
     }
   };
 
@@ -63,7 +63,7 @@ export const LoginForm = () => {
         {apiError && (
           <Alert variant="destructive" className="mb-2">
             <ExclamationTriangleIcon className="w-5 h-5" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Erreur</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         )}
@@ -73,10 +73,10 @@ export const LoginForm = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>E-mail</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your email"
+                    placeholder="Entrez votre email"
                     {...field}
                     className={`w-full p-2 rounded-md ${
                       form.formState.errors.email ? "border-red-500" : ""
@@ -96,7 +96,7 @@ export const LoginForm = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Mot de passe</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -117,7 +117,7 @@ export const LoginForm = () => {
           type="submit"
           disabled={form.formState.isSubmitting || !form.formState.isValid}
         >
-          Sign in
+          Se connecter
         </Button>
       </form>
     </Form>

@@ -53,22 +53,22 @@ export function LoginPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="p-6 sm:p-8">
             <Logo />
-            <h2 className="text-3xl font-bold mt-6 mb-2">Welcome</h2>
+            <h2 className="text-3xl font-bold mt-6 mb-2">Bienvenue</h2>
             <p className="text-gray-600 mb-6">
-              Please sign in to your account or create a new one.
+              Veuillez vous connecter à votre compte ou en créer un nouveau.
             </p>
             <TabsList className="grid w-full grid-cols-2 mb-1 bg-gray-100 p-1 rounded-lg h-14">
               <TabsTrigger
                 value="login"
                 className="text-lg py-2 rounded-md data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all"
               >
-                Login
+                Connexion
               </TabsTrigger>
               <TabsTrigger
                 value="register"
                 className="text-lg py-2 rounded-md data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all"
               >
-                Register
+                Inscription
               </TabsTrigger>
             </TabsList>
             <div
