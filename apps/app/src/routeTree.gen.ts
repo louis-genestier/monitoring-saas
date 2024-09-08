@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as VerifierEmailVerificationTokenImport } from './routes/verifier-email.$verificationToken'
 import { Route as AuthenticatedSuiviAjouterImport } from './routes/_authenticated/suivi/ajouter'
 import { Route as AuthenticatedSuiviTrackedProductIdIndexImport } from './routes/_authenticated/suivi/$trackedProductId/index'
 import { Route as AuthenticatedSuiviTrackedProductIdModifierImport } from './routes/_authenticated/suivi/$trackedProductId/modifier'
@@ -34,6 +35,12 @@ const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+
+const VerifierEmailVerificationTokenRoute =
+  VerifierEmailVerificationTokenImport.update({
+    path: '/verifier-email/$verificationToken',
+    getParentRoute: () => rootRoute,
+  } as any)
 
 const AuthenticatedSuiviAjouterRoute = AuthenticatedSuiviAjouterImport.update({
   path: '/suivi/ajouter',
@@ -68,6 +75,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginImport
+      parentRoute: typeof rootRoute
+    }
+    '/verifier-email/$verificationToken': {
+      id: '/verifier-email/$verificationToken'
+      path: '/verifier-email/$verificationToken'
+      fullPath: '/verifier-email/$verificationToken'
+      preLoaderRoute: typeof VerifierEmailVerificationTokenImport
       parentRoute: typeof rootRoute
     }
     '/_authenticated/': {
@@ -111,6 +125,7 @@ export const routeTree = rootRoute.addChildren({
     AuthenticatedSuiviTrackedProductIdIndexRoute,
   }),
   LoginRoute,
+  VerifierEmailVerificationTokenRoute,
 })
 
 /* prettier-ignore-end */
@@ -122,7 +137,8 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/_authenticated",
-        "/login"
+        "/login",
+        "/verifier-email/$verificationToken"
       ]
     },
     "/_authenticated": {
@@ -136,6 +152,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/verifier-email/$verificationToken": {
+      "filePath": "verifier-email.$verificationToken.tsx"
     },
     "/_authenticated/": {
       "filePath": "_authenticated/index.ts",
