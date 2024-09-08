@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { client } from "@repo/front-logic";
 import {
@@ -26,7 +26,7 @@ import {
   CardTitle,
   CardContent,
 } from "@repo/ui";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -72,24 +72,48 @@ export const Products: React.FC = () => {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [formData, setFormData] = useState<ProductFormValues>({
+    name: "",
+    externalIds: [],
+  });
 
-  const { data: products, isLoading } = useQuery<{ items: Product[] }>({
+  const { data: products, isLoading: productsLoading } = useQuery<{
+    items: Product[];
+  }>({
     queryKey: ["products"],
     queryFn: () => client.admin.products.$get().then((res) => res.json()),
   });
 
-  const { data: websites } = useQuery<{ items: Website[] }>({
+  const { data: websites, isLoading: websitesLoading } = useQuery<{
+    items: Website[];
+  }>({
     queryKey: ["websites"],
     queryFn: () => client.admin.websites.$get().then((res) => res.json()),
   });
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: "",
-      externalIds: [],
-    },
+    defaultValues: formData,
   });
+
+  const { fields, replace } = useFieldArray({
+    control: form.control,
+    name: "externalIds",
+  });
+
+  useEffect(() => {
+    if (websites?.items) {
+      const initialExternalIds = websites.items.map((website) => ({
+        websiteId: website.id,
+        value: "",
+      }));
+      setFormData((prevData) => ({
+        ...prevData,
+        externalIds: initialExternalIds,
+      }));
+      replace(initialExternalIds);
+    }
+  }, [websites, replace]);
 
   const createProductMutation = useMutation({
     mutationFn: (data: ProductFormValues) =>
@@ -136,12 +160,24 @@ export const Products: React.FC = () => {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
+    const updatedExternalIds =
+      websites?.items.map((website) => {
+        const existingId = product.ProductId.find(
+          (id) => id.websiteId === website.id
+        );
+        return {
+          websiteId: website.id,
+          value: existingId ? existingId.externalId : "",
+        };
+      }) || [];
+    setFormData({
+      name: product.name,
+      externalIds: updatedExternalIds,
+    });
+    replace(updatedExternalIds);
     form.reset({
       name: product.name,
-      externalIds: product.ProductId.map((id) => ({
-        websiteId: id.websiteId,
-        value: id.externalId,
-      })),
+      externalIds: updatedExternalIds,
     });
     setIsDialogOpen(true);
   };
@@ -155,13 +191,23 @@ export const Products: React.FC = () => {
   const handleDialogClose = () => {
     setIsDialogOpen(false);
     setEditingProduct(null);
+    const initialExternalIds =
+      websites?.items.map((website) => ({
+        websiteId: website.id,
+        value: "",
+      })) || [];
+    setFormData({
+      name: "",
+      externalIds: initialExternalIds,
+    });
+    replace(initialExternalIds);
     form.reset({
       name: "",
-      externalIds: [],
+      externalIds: initialExternalIds,
     });
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (productsLoading || websitesLoading) return <div>Loading...</div>;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -268,16 +314,22 @@ export const Products: React.FC = () => {
                   </FormItem>
                 )}
               />
-              {websites?.items.map((website, index) => (
+              {fields.map((field, index) => (
                 <FormField
-                  key={website.id}
+                  key={field.id}
                   control={form.control}
                   name={`externalIds.${index}.value`}
-                  render={({ field }) => (
+                  render={({ field: inputField }) => (
                     <FormItem>
-                      <FormLabel>{website.name} External ID</FormLabel>
+                      <FormLabel>
+                        {
+                          websites?.items.find((w) => w.id === field.websiteId)
+                            ?.name
+                        }{" "}
+                        External ID
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} className="w-full" />
+                        <Input {...inputField} className="w-full" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
