@@ -123,8 +123,12 @@ const routes = app
       },
     });
 
-    if (!website || !productId) {
-      return c.json({ error: "Website or product not found" }, 404);
+    if (!productId) {
+      return c.json({ error: "No product attached to this website" }, 404);
+    }
+
+    if (!website) {
+      return c.json({ error: "Website not found" }, 404);
     }
 
     try {
