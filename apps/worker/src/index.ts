@@ -1,13 +1,9 @@
-import {
-  AlertStatus,
-  PricePoint,
-  PriceType,
-  TrackedProductWithAlert,
-} from "@repo/prisma-client";
+import { AlertStatus, PricePoint, PriceType } from "@repo/prisma-client";
 import { fetchFnacPrice } from "./fetchers/fnacFetcher";
 import { fetchRakutenPrice } from "./fetchers/rakutenFetcher";
 import logger from "./utils/logger";
 import { prisma } from "./utils/prisma";
+import { shouldSendAlert } from "./utils/shouldSendAlert";
 
 const createPricePointAndCheckAlert = async (
   product: { id: string; name: string },
@@ -26,7 +22,7 @@ const createPricePointAndCheckAlert = async (
         timestamp: "desc",
       },
     });
-    const pricePoint = await prisma.pricePoint.create({
+    const createdPricePoint = await prisma.pricePoint.create({
       data: {
         productId: product.id,
         price,
@@ -36,37 +32,15 @@ const createPricePointAndCheckAlert = async (
       },
     });
 
-    await checkAlert(product, price, previousPricePoint, pricePoint, priceType);
+    await checkAlert(
+      product,
+      price,
+      previousPricePoint,
+      createdPricePoint,
+      priceType
+    );
   } catch (error) {
     logger.error(`Error in createPricePointAndCheckAlert: ${error}`);
-  }
-};
-
-const shouldSendAlert = (
-  previousPricePoint: PricePoint | null,
-  trackedProduct: TrackedProductWithAlert
-) => {
-  try {
-    // since we have no alert or price point for this trackedProduct we can send an alert -> first time
-    if (trackedProduct.Alert.length === 0 || !previousPricePoint) {
-      logger.info(
-        `No alert or price point for ${trackedProduct.priceType === PriceType.NEW ? "(new)" : "(used)"}`
-      );
-      return true;
-    }
-
-    // if the latest price point is already lower than the trackedProduct threshold
-    // we don't need to send an alert
-    if (previousPricePoint.price < trackedProduct.threshold) {
-      return false;
-    }
-
-    // if the latest price point is higher than the trackedProduct threshold
-    // we need to send an alert
-    return true;
-  } catch (error) {
-    logger.error(`Error in shouldSendAlert: ${error}`);
-    return false;
   }
 };
 
@@ -74,7 +48,7 @@ const checkAlert = async (
   product: { id: string; name: string },
   price: number,
   previousPricePoint: PricePoint | null,
-  latestPricePoint: PricePoint,
+  createdPricePoint: PricePoint,
   kind: PriceType
 ) => {
   try {
@@ -105,6 +79,7 @@ const checkAlert = async (
 
     for (const trackedProduct of trackedProducts) {
       const shouldSendAlertResult = shouldSendAlert(
+        price,
         previousPricePoint,
         trackedProduct
       );
@@ -114,7 +89,7 @@ const checkAlert = async (
           data: {
             trackedProductId: trackedProduct.id,
             status: AlertStatus.SENT,
-            pricePointId: latestPricePoint.id,
+            pricePointId: createdPricePoint.id,
             alertProviderId: trackedProduct.alertProviderId,
           },
         });
