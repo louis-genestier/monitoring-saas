@@ -17,7 +17,7 @@ export const TrackedProductsTable = () => {
   const items = data?.items ?? [];
 
   return (
-    <div className="flex flex-col gap-4 mx-4 bg-white rounded-lg p-4 mt-4 xl:container xl:mx-auto">
+    <div className="flex flex-col gap-4 mx-4 bg-white rounded-lg p-4 mt-4 xl:mx-auto xl:w-4/5 xl:mt-12">
       <div className="flex justify-between items-center">
         <p className="text-xl font-bold">Mes produits suivis</p>
         <Button className="bg-accent text-white hover:bg-accent/80 flex gap-1 items-center px-2 py-4 w-fit">
@@ -33,6 +33,7 @@ export const TrackedProductsTable = () => {
             <TableHead className="hidden md:table-cell">
               Seuil de prix
             </TableHead>
+            <TableHead className="hidden md:table-cell">Type de prix</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -62,6 +63,9 @@ export const TrackedProductsTable = () => {
               <TableCell>{trackedProduct.isEnabled ? "Oui" : "Non"}</TableCell>
               <TableCell className="hidden md:table-cell">
                 {trackedProduct.threshold}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {trackedProduct.priceType === "NEW" ? "Neuf" : "D'occasion"}
               </TableCell>
               <TableCell>
                 <div className="flex gap-1">

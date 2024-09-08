@@ -33,7 +33,9 @@ export const Route = createFileRoute("/_authenticated")({
     return (
       <div className="w-screen">
         <Navbar />
-        <Outlet />
+        <div className="xl:ml-64">
+          <Outlet />
+        </div>
       </div>
     );
   },

@@ -99,7 +99,7 @@ export const EditTrackedProduct = () => {
   console.log(trackedProduct);
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 xl:w-4/5">
       <ReturnToDashboard />
       <Card>
         <CardHeader>

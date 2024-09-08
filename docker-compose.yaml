@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: app
     volumes:
-      - /tmp/postgres-data-website-monitoring:/var/lib/postgresql/data
+      - postgres-data-website-monitoring:/var/lib/postgresql/data
 
 volumes:
   postgres-data-website-monitoring:

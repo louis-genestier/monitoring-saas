@@ -26,7 +26,7 @@ export const DeleteDialog = ({ id }: { id: string }) => {
           <Trash />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-80">
+      <DialogContent className="max-w-80 xl:max-w-md">
         <DialogHeader className="flex flex-col gap-2">
           <DialogTitle>Confirmer la suppression</DialogTitle>
           <DialogDescription>

@@ -58,7 +58,7 @@ export const AddTrackedProduct = () => {
   const { data, isLoading: isAlertProvidersLoading } = useAlertProviders();
   const navigate = useNavigate();
 
-  const { data: products, isLoading: isProductsLoading } = useProducts({
+  const { data: products } = useProducts({
     page: 1,
     limit: 10,
   });
@@ -96,7 +96,7 @@ export const AddTrackedProduct = () => {
   console.log(form.getValues());
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 xl:w-4/5">
       <ReturnToDashboard />
       <Card>
         <CardHeader>

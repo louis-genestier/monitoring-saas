@@ -25,6 +25,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.11.17",
     "tsx": "^4.7.1",
-    "@repo/prisma-client": "workspace:*"
+    "@repo/prisma-client": "workspace:*",
+    "prisma": "^5.19.1"
   }
 }

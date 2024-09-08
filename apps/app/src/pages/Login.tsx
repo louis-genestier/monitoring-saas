@@ -48,7 +48,7 @@ export function LoginPage() {
   }, [activeTab]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-100 to-green-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-100 to-green-100 flex items-center justify-center p-4 w-screen">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="p-6 sm:p-8">
