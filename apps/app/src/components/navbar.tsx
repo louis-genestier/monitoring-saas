@@ -21,7 +21,7 @@ const NavContent = ({
       <div className="p-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold xl:hidden">Menu</h1>
         <h1 className="text-2xl font-bold hidden xl:block">
-          <Link to="/">SaaS Name</Link>
+          <Link to="/">DealZap</Link>
         </h1>
         <Button
           variant="ghost"
@@ -103,7 +103,7 @@ export const Navbar = () => {
         >
           <MenuIcon className="w-6 h-6" />
         </Button>
-        <h1 className="text-2xl font-bold">SaaS Name</h1>
+        <h1 className="text-2xl font-bold">DealZap</h1>
       </div>
       <div className="hidden xl:flex h-screen w-64 bg-white shadow-lg flex-col fixed left-0 top-0">
         <NavContent
