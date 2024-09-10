@@ -15,7 +15,7 @@ import { generateToken } from "@/utils/generateToken";
 // import { stripe } from "@/stripe/service";
 import { emailService } from "@/utils/email";
 import { sessionMiddleware } from "./middleware/sessionMiddleware";
-import { ADMIN_EMAILS } from "@/config/env";
+import { ADMIN_EMAILS, FRONTEND_URL } from "@/config/env";
 import { rateLimiterInstance } from "@/utils/rateLimit";
 
 const app = new Hono<Context>();
@@ -119,8 +119,7 @@ const routes = app
 
       await emailService.sendWelcomeEmail({
         userEmail: email,
-        // TODO: Change this to the frontend URL
-        verifyUrl: `http://localhost:3000/auth/verify-email/${verificationToken}`,
+        verifyUrl: `${FRONTEND_URL}/verifier-email/${verificationToken}`,
       });
 
       return c.json({ message: "User registered" });

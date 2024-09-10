@@ -1,11 +1,11 @@
-import { Eta } from "eta";
 import path from "path";
+import { Resend } from "resend";
+import { RESEND_API_KEY, SENDER_EMAIL } from "../config/env";
 
 interface EmailOptions {
   to: string;
   subject: string;
   text: string;
-  html: string;
 }
 
 interface EmailProvider {
@@ -20,20 +20,28 @@ class LocalhostEmailProvider implements EmailProvider {
   }
 }
 
+class ResendEmailProvider implements EmailProvider {
+  private resend: Resend;
+
+  constructor(apiKey: string) {
+    this.resend = new Resend(apiKey);
+  }
+
+  async sendEmail(options: EmailOptions): Promise<void> {
+    await this.resend.emails.send({
+      from: SENDER_EMAIL,
+      subject: options.subject,
+      to: options.to,
+      text: options.text,
+    });
+  }
+}
+
 class EmailService {
   private provider: EmailProvider;
-  private eta: Eta;
 
   constructor(provider: EmailProvider) {
     this.provider = provider;
-    this.eta = new Eta({ views: path.join(__dirname, "../emails") });
-  }
-
-  private async renderTemplate(
-    templateName: string,
-    data: any
-  ): Promise<string> {
-    return this.eta.renderAsync(templateName, data);
   }
 
   async sendWelcomeEmail({
@@ -43,13 +51,12 @@ class EmailService {
     userEmail: string;
     verifyUrl: string;
   }): Promise<void> {
-    const html = await this.renderTemplate("emailVerification", { verifyUrl });
-
     await this.provider.sendEmail({
       to: userEmail,
-      subject: "Welcome to our app!",
-      text: `Welcome to our app! Please verify your email at: ${verifyUrl}`,
-      html,
+      subject: "Bienvenue sur DealZap",
+      text: `Salut 👋🏻,
+Bienvenue sur DealZap ! Pour commencer à utiliser le site, merci de vérifier ton adresse email en cliquant sur le lien suivant: ${verifyUrl}
+À bientôt`,
     });
   }
 
@@ -58,13 +65,10 @@ class EmailService {
   }: {
     userEmail: string;
   }): Promise<void> {
-    const html = await this.renderTemplate("paymentPastDue", {});
-
     await this.provider.sendEmail({
       to: userEmail,
       subject: "Your payment is past due",
       text: "Your payment is past due. Please update your payment information.",
-      html,
     });
   }
 
@@ -75,13 +79,10 @@ class EmailService {
     userEmail: string;
     resetUrl: string;
   }): Promise<void> {
-    const html = await this.renderTemplate("passwordReset", { resetUrl });
-
     await this.provider.sendEmail({
       to: userEmail,
-      subject: "Reset your password",
-      text: `Reset your password by clicking this link: ${resetUrl}`,
-      html,
+      subject: "Réinitialisation de ton mot de passe",
+      text: `Réinitialise ton mot de passe en cliquant sur ce lien: ${resetUrl}`,
     });
   }
 }
@@ -90,6 +91,11 @@ function createEmailProvider(providerName: string): EmailProvider {
   switch (providerName) {
     case "localhost":
       return new LocalhostEmailProvider();
+    case "resend":
+      if (!RESEND_API_KEY) {
+        throw new Error("Missing API key for Resend email provider");
+      }
+      return new ResendEmailProvider(RESEND_API_KEY);
     default:
       throw new Error(`Unsupported email provider: ${providerName}`);
   }
