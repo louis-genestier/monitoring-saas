@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
+    "@repo/prisma-client": "workspace:*",
     "@tanstack/router-devtools": "^1.47.1",
     "@tanstack/router-plugin": "^1.47.0",
     "@types/react": "^18.3.3",
@@ -41,7 +42,6 @@
     "tailwindcss": "^3.4.9",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.0",
-    "vite": "^5.4.0",
-    "@repo/prisma-client": "workspace:*"
+    "vite": "^5.4.0"
   }
 }

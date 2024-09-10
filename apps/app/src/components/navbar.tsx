@@ -46,10 +46,10 @@ const NavContent = ({
         </li>
         <li className="py-2">
           <Link
-            // to="/settings"
+            to="/parametres"
             onClick={() => setIsOpen(false)}
             className={`text-gray-700 hover:text-gray-900 flex items-center gap-2 px-4 py-2 ${
-              pathname === "/settings" ? selectedStyle : ""
+              pathname === "/parametres" ? selectedStyle : ""
             }`}
           >
             <SettingsIcon className="w-4 h-4" />

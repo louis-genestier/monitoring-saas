@@ -15,6 +15,7 @@ import { Route as LoginImport } from './routes/login'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
 import { Route as VerifierEmailVerificationTokenImport } from './routes/verifier-email.$verificationToken'
+import { Route as AuthenticatedParametresImport } from './routes/_authenticated/parametres'
 import { Route as AuthenticatedSuiviAjouterImport } from './routes/_authenticated/suivi/ajouter'
 import { Route as AuthenticatedSuiviTrackedProductIdIndexImport } from './routes/_authenticated/suivi/$trackedProductId/index'
 import { Route as AuthenticatedSuiviTrackedProductIdModifierImport } from './routes/_authenticated/suivi/$trackedProductId/modifier'
@@ -41,6 +42,11 @@ const VerifierEmailVerificationTokenRoute =
     path: '/verifier-email/$verificationToken',
     getParentRoute: () => rootRoute,
   } as any)
+
+const AuthenticatedParametresRoute = AuthenticatedParametresImport.update({
+  path: '/parametres',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 const AuthenticatedSuiviAjouterRoute = AuthenticatedSuiviAjouterImport.update({
   path: '/suivi/ajouter',
@@ -76,6 +82,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
+    }
+    '/_authenticated/parametres': {
+      id: '/_authenticated/parametres'
+      path: '/parametres'
+      fullPath: '/parametres'
+      preLoaderRoute: typeof AuthenticatedParametresImport
+      parentRoute: typeof AuthenticatedImport
     }
     '/verifier-email/$verificationToken': {
       id: '/verifier-email/$verificationToken'
@@ -119,6 +132,7 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   AuthenticatedRoute: AuthenticatedRoute.addChildren({
+    AuthenticatedParametresRoute,
     AuthenticatedIndexRoute,
     AuthenticatedSuiviAjouterRoute,
     AuthenticatedSuiviTrackedProductIdModifierRoute,
@@ -144,6 +158,7 @@ export const routeTree = rootRoute.addChildren({
     "/_authenticated": {
       "filePath": "_authenticated.tsx",
       "children": [
+        "/_authenticated/parametres",
         "/_authenticated/",
         "/_authenticated/suivi/ajouter",
         "/_authenticated/suivi/$trackedProductId/modifier",
@@ -152,6 +167,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/_authenticated/parametres": {
+      "filePath": "_authenticated/parametres.ts",
+      "parent": "/_authenticated"
     },
     "/verifier-email/$verificationToken": {
       "filePath": "verifier-email.$verificationToken.tsx"
