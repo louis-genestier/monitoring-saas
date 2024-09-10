@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { object, string, pipe, minLength, email } from "valibot";
+import { object, string, pipe, minLength, email, optional } from "valibot";
 import { vValidator } from "@hono/valibot-validator";
 import { compare, hash } from "bcrypt";
 import { Context } from "@/types/honoContext";
@@ -28,6 +28,7 @@ const loginSchema = object({
 const registerSchema = object({
   email: pipe(string(), email()),
   password: pipe(string(), minLength(8)),
+  invitationCode: optional(string()),
 });
 
 const forgotPasswordSchema = object({
@@ -92,9 +93,20 @@ const routes = app
     rateLimiterInstance(5, 1),
     vValidator("json", registerSchema),
     async (c) => {
-      const { password, email } = c.req.valid("json");
+      const { password, email, invitationCode } = c.req.valid("json");
 
       const isAdmin = ADMIN_EMAILS?.split(",").includes(email);
+
+      const invitation = await prisma.invitationCode.findFirst({
+        where: {
+          code: invitationCode,
+          isUsed: false,
+        },
+      });
+
+      if (!invitation && !isAdmin) {
+        throw new ForbiddenError("Invalid invitation code");
+      }
 
       const foundUser = await prisma.user.findUnique({
         where: {
@@ -108,19 +120,35 @@ const routes = app
 
       const verificationToken = generateToken();
 
-      await prisma.user.create({
+      const user = await prisma.user.create({
         data: {
           email,
           password: await hash(password, 12),
           verificationToken,
           isAdmin,
+          emailVerifiedAt: isAdmin ? new Date() : null,
+          isEmailVerified: isAdmin,
         },
       });
 
-      await emailService.sendWelcomeEmail({
-        userEmail: email,
-        verifyUrl: `${FRONTEND_URL}/verifier-email/${verificationToken}`,
-      });
+      if (invitation) {
+        await prisma.invitationCode.update({
+          where: {
+            id: invitation.id,
+          },
+          data: {
+            isUsed: true,
+            userId: user.id,
+          },
+        });
+      }
+
+      if (!isAdmin) {
+        await emailService.sendWelcomeEmail({
+          userEmail: email,
+          verifyUrl: `${FRONTEND_URL}/verifier-email/${verificationToken}`,
+        });
+      }
 
       return c.json({ message: "User registered" });
     }

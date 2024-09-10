@@ -18,6 +18,7 @@ import { websitesRoutes } from "./websites.controller";
 import { userRoutes } from "./user.controller";
 import { subscriptionRoutes } from "./subscription.controller";
 import { metricsRoutes } from "./metrics.controller";
+import { invitationCodeRoutes } from "./invitationCode.controller";
 
 const app = new Hono<Context>();
 
@@ -58,6 +59,7 @@ const routes = app
   .route("/subscriptions", subscriptionRoutes)
   .route("/metrics", metricsRoutes)
   .route("/products", productsRoutes)
-  .route("/websites", websitesRoutes);
+  .route("/websites", websitesRoutes)
+  .route("/invitations", invitationCodeRoutes);
 
 export { routes as adminRoutes };

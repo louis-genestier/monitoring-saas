@@ -16,6 +16,7 @@ import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedWebsitesImport } from './routes/_authenticated/websites'
 import { Route as AuthenticatedProductsImport } from './routes/_authenticated/products'
+import { Route as AuthenticatedInvitationsImport } from './routes/_authenticated/invitations'
 
 // Create/Update Routes
 
@@ -44,6 +45,11 @@ const AuthenticatedProductsRoute = AuthenticatedProductsImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
+const AuthenticatedInvitationsRoute = AuthenticatedInvitationsImport.update({
+  path: '/invitations',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -61,6 +67,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
+    }
+    '/_authenticated/invitations': {
+      id: '/_authenticated/invitations'
+      path: '/invitations'
+      fullPath: '/invitations'
+      preLoaderRoute: typeof AuthenticatedInvitationsImport
+      parentRoute: typeof AuthenticatedImport
     }
     '/_authenticated/products': {
       id: '/_authenticated/products'
@@ -90,6 +103,7 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   AuthenticatedRoute: AuthenticatedRoute.addChildren({
+    AuthenticatedInvitationsRoute,
     AuthenticatedProductsRoute,
     AuthenticatedWebsitesRoute,
     AuthenticatedIndexRoute,
@@ -112,6 +126,7 @@ export const routeTree = rootRoute.addChildren({
     "/_authenticated": {
       "filePath": "_authenticated.tsx",
       "children": [
+        "/_authenticated/invitations",
         "/_authenticated/products",
         "/_authenticated/websites",
         "/_authenticated/"
@@ -119,6 +134,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/_authenticated/invitations": {
+      "filePath": "_authenticated/invitations.ts",
+      "parent": "/_authenticated"
     },
     "/_authenticated/products": {
       "filePath": "_authenticated/products.ts",

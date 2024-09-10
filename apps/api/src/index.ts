@@ -9,6 +9,7 @@ import { trackedProductsRoutes } from "./trackedProducts/controller";
 import { cors } from "hono/cors";
 import { productsRoutes } from "./products/controller";
 import { alertProviderRoutes } from "./alertProviders/controller";
+import { invitationCodeRoutes } from "./admin/invitationCode.controller";
 
 const app = new Hono();
 

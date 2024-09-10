@@ -15,6 +15,7 @@ import {
   FormControl,
   FormMessage,
 } from "@repo/ui/";
+import { useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,6 +40,9 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export const RegisterForm = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const search = useSearch({
+    from: "/login",
+  });
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -52,7 +56,11 @@ export const RegisterForm = () => {
   const onSubmit = async (data: RegisterFormValues) => {
     try {
       const response = await client.auth.register.$post({
-        json: data,
+        json: {
+          email: data.email,
+          password: data.password,
+          invitationCode: `${search.invitationCode}`,
+        },
       });
 
       if (response.ok) {
@@ -60,6 +68,8 @@ export const RegisterForm = () => {
       } else {
         if (response.status === 409) {
           setApiError("Cet e-mail est déjà utilisé");
+        } else if (response.status === 403) {
+          setApiError("Code d'invitation invalide");
         } else {
           setApiError("Une erreur s'est produite, veuillez réessayer");
         }
