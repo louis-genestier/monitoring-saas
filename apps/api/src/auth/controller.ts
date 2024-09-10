@@ -12,10 +12,10 @@ import {
 } from "@/utils/errors";
 import { lucia } from "@/config/lucia";
 import { generateToken } from "@/utils/generateToken";
-// import { stripe } from "@/stripe/service";
+import { stripe } from "@/stripe/service";
 import { emailService } from "@/utils/email";
 import { sessionMiddleware } from "./middleware/sessionMiddleware";
-import { ADMIN_EMAILS, FRONTEND_URL } from "@/config/env";
+import { ADMIN_EMAILS, FRONTEND_URL, NODE_ENV } from "@/config/env";
 import { rateLimiterInstance } from "@/utils/rateLimit";
 
 const app = new Hono<Context>();
@@ -104,7 +104,7 @@ const routes = app
         },
       });
 
-      if (!invitation && !isAdmin) {
+      if (!invitation && !isAdmin && NODE_ENV === "production") {
         throw new ForbiddenError("Invalid invitation code");
       }
 
@@ -165,10 +165,9 @@ const routes = app
       throw new NotFoundError("Invalid token");
     }
 
-    // TODO: uncomment this when we want to use stripe
-    // const customer = await stripe.customers.create({
-    //   email: user.email,
-    // });
+    const customer = await stripe.customers.create({
+      email: user.email,
+    });
 
     await prisma.user.update({
       where: {
@@ -178,7 +177,7 @@ const routes = app
         emailVerifiedAt: new Date(),
         isEmailVerified: true,
         verificationToken: null,
-        // stripeId: customer.id,
+        stripeId: customer.id,
       },
     });
 

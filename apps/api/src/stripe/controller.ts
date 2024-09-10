@@ -40,39 +40,44 @@ const routes = app.post("/webhook", async (c) => {
 
   console.log("stripe event: ", event);
 
-  switch (event.type) {
-    case "checkout.session.completed":
-      // Payment is successful and the subscription is created.
-      // You should provision the subscription and save the customer ID to your database.
-      const paymentIntent = event.data.object;
-      await handleCheckoutSessionCompleted(paymentIntent);
-      break;
-    case "invoice.paid":
-      // Continue to provision the subscription as payments continue to be made.
-      // Store the status in your database and check when a user accesses your service.
-      // This approach helps you avoid hitting rate limits.
-      const paymentMethod = event.data.object;
-      await handleInvoicePaid(paymentMethod);
-      break;
-    case "invoice.payment_failed":
-      //   The payment failed or the customer does not have a valid payment method.
-      //   The subscription becomes past_due. Notify your customer and send them to the
-      //   customer portal to update their payment information.
-      const subscription = event.data.object;
-      await handleInvoicePaymentFailed(subscription);
-      break;
-    case "customer.subscription.deleted":
-      const deletedSubscription = event.data.object;
-      await handleSubscriptionDeleted(deletedSubscription);
-      break;
-    // ... handle other event types
-    default:
-      // Unexpected event type
-      console.log(`Unhandled stripe event type ${event.type}`);
-      return c.json({ status: "ok" });
-  }
+  try {
+    switch (event.type) {
+      case "checkout.session.completed":
+        // Payment is successful and the subscription is created.
+        // You should provision the subscription and save the customer ID to your database.
+        const paymentIntent = event.data.object;
+        await handleCheckoutSessionCompleted(paymentIntent);
+        break;
+      case "invoice.paid":
+        // Continue to provision the subscription as payments continue to be made.
+        // Store the status in your database and check when a user accesses your service.
+        // This approach helps you avoid hitting rate limits.
+        const paymentMethod = event.data.object;
+        await handleInvoicePaid(paymentMethod);
+        break;
+      case "invoice.payment_failed":
+        //   The payment failed or the customer does not have a valid payment method.
+        //   The subscription becomes past_due. Notify your customer and send them to the
+        //   customer portal to update their payment information.
+        const subscription = event.data.object;
+        await handleInvoicePaymentFailed(subscription);
+        break;
+      case "customer.subscription.deleted":
+        const deletedSubscription = event.data.object;
+        await handleSubscriptionDeleted(deletedSubscription);
+        break;
+      // ... handle other event types
+      default:
+        // Unexpected event type
+        console.log(`Unhandled stripe event type ${event.type}`);
+        return c.json({ status: "ok" });
+    }
 
-  return c.json({ received: true });
+    return c.json({ received: true });
+  } catch (err: any) {
+    console.error(`handle stripe event ${event.type}: `, err);
+    throw new AppError("Failed to handle stripe event", 500);
+  }
 });
 
 export { routes as stripeRoutes };

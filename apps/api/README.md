@@ -16,7 +16,7 @@ To get `STRIPE_WEBHOOK_SECRET` secret:
 
 # To do:
 
-- [ ] Add rate limiting to critical endpoints (login, register, reset password, etc)
+- [x] Add rate limiting to critical endpoints (login, register, reset password, etc)
 - [ ] Add OAUTH login (Google at least)
-- [ ] Add logging system
+- [x] Add logging system
 - [ ] Add tests

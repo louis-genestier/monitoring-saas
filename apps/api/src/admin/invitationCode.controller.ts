@@ -1,8 +1,8 @@
 import { adminMiddleware } from "@/auth/middleware/isAdminMiddleware";
 import { sessionMiddleware } from "@/auth/middleware/sessionMiddleware";
 import { Context } from "@/types/honoContext";
+import { generateToken } from "@/utils/generateToken";
 import { prisma } from "@repo/prisma-client";
-import { randomBytes } from "crypto";
 import { Hono } from "hono";
 
 const app = new Hono<Context>();
@@ -11,7 +11,7 @@ const routes = app
   .post("/", sessionMiddleware, adminMiddleware, async (c) => {
     const invitationCode = await prisma.invitationCode.create({
       data: {
-        code: randomBytes(20).toString("hex"),
+        code: generateToken(),
       },
     });
 
