@@ -9,7 +9,7 @@ import { trackedProductsRoutes } from "./trackedProducts/controller";
 import { cors } from "hono/cors";
 import { productsRoutes } from "./products/controller";
 import { alertProviderRoutes } from "./alertProviders/controller";
-import { invitationCodeRoutes } from "./admin/invitationCode.controller";
+import { userRoutes } from "./user/controller";
 
 const app = new Hono();
 
@@ -29,6 +29,7 @@ const routes = app
   .route("/tracked-products", trackedProductsRoutes)
   .route("/products", productsRoutes)
   .route("/alert-providers", alertProviderRoutes)
+  .route("/user", userRoutes)
   .get("/health", (c) => {
     return c.json({ status: "ok" });
   })

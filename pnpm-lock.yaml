@@ -137,7 +137,7 @@ importers:
         version: 16.7.0
       valibot:
         specifier: ^0.37.0
-        version: 0.37.0
+        version: 0.37.0(typescript@5.4.5)
     devDependencies:
       '@repo/prisma-client':
         specifier: workspace:*
@@ -1748,7 +1748,7 @@ packages:
       valibot: '>=0.31.0 <1'
     dependencies:
       hono: 4.5.4
-      valibot: 0.37.0
+      valibot: 0.37.0(typescript@5.4.5)
     dev: false
 
   /@hookform/resolvers@3.9.0(react-hook-form@7.52.2):
@@ -11706,7 +11706,6 @@ packages:
   /typescript@5.4.5:
     resolution: {integrity: sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==}
     engines: {node: '>=14.17'}
-    dev: true
 
   /typescript@5.5.4:
     resolution: {integrity: sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==}
@@ -11936,13 +11935,15 @@ packages:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
     dev: true
 
-  /valibot@0.37.0:
+  /valibot@0.37.0(typescript@5.4.5):
     resolution: {integrity: sha512-FQz52I8RXgFgOHym3XHYSREbNtkgSjF9prvMFH1nBsRyfL6SfCzoT1GuSDTlbsuPubM7/6Kbw0ZMQb8A+V+VsQ==}
     peerDependencies:
       typescript: '>=5'
     peerDependenciesMeta:
       typescript:
         optional: true
+    dependencies:
+      typescript: 5.4.5
     dev: false
 
   /valibot@0.38.0(typescript@5.5.4):
