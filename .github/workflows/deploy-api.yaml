@@ -1,0 +1,89 @@
+name: Deploy API
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    outputs:
+      changed-apps: ${{ steps.changed-api.outputs.result }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: pnpm/action-setup@v4
+      - name: Install deps
+        run: pnpm install
+      - name: Changeset
+        id: changeset
+        run: |
+          pnpm turbo run build --filter="{apps/*}[HEAD^1]" --dry-run=json > turbo_output.json
+      - name: Changed api ?
+        id: changed-api
+        run: |
+          if grep -q '"api"' turbo_output.json; then
+            echo "result=true" >> $GITHUB_OUTPUT
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-api:
+    needs: checks
+    runs-on: ubuntu-latest
+    if: ${{ needs.checks.outputs.changed-apps == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Install deps
+        run: pnpm install
+      - name: Check Server Connectivity
+        run: |
+          if nc -z -w5 ${{ secrets.SERVER_SSH_HOST }} 22; then
+            echo "Server is reachable"
+          else
+            echo "Server is not reachable"
+            exit 1
+          fi
+      - name: Setup SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+      - name: Setup SSH known hosts
+        env:
+          SSH_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
+        run: |
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+      - name: Setup SSH tunnel
+        env:
+          SSH_USER: ${{ secrets.SERVER_SSH_USER }}
+          SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
+        run: |
+          ssh -vvv -fN -L 5432:localhost:5432 $SSH_USER@$SSH_HOST
+          if [ $? -eq 0 ]; then
+            echo "SSH tunnel established successfully"
+          else
+            echo "Failed to establish SSH tunnel"
+            exit 1
+          fi
+      - name: Execute prisma migration & seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cd packages/prisma-client
+          pnpm prisma migrate deploy
+          pnpm prisma generate
+          pnpm prisma db seed
+      - name: Close SSH tunnel
+        if: always()
+        run: pkill -f "ssh -fN -L 5432:localhost:5432" || true

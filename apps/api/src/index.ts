@@ -13,7 +13,7 @@ import { userRoutes } from "./user/controller";
 
 const app = new Hono();
 
-// TODO: handle CORS properly
+// TODO: handle CORS properly!
 app.use(
   "*",
   cors({
