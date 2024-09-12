@@ -1,7 +1,7 @@
 export enum PaymentPlanId {
   Basic = "basic",
   Standard = "standard",
-  Premium = "premium",
+  // Premium = "premium",
 }
 
 export interface PaymentPlan {
