@@ -1,4 +1,4 @@
-name: Deploy API
+name: Deploy apps
 on:
   push:
     branches:
@@ -87,3 +87,50 @@ jobs:
       - name: Close SSH tunnel
         if: always()
         run: pkill -f "ssh -fN -L 5432:localhost:5432" || true
+      - name: Build api
+        run: pnpm --filter=api build
+      - name: Create .env file
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          STRIPE_BASIC_PRICE_ID: ${{ secrets.STRIPE_BASIC_PRICE_ID }}
+          STRIPE_STANDARD_PRICE_ID: ${{ secrets.STRIPE_STANDARD_PRICE_ID }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          API_PORT: 3245
+        run: |
+          cd apps/api
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          echo "NODE_ENV=production" >> .env
+          echo "PORT=$API_PORT" >> .env
+          echo "ADMIN_EMAIL=louis.genestier@protonmail.com" >> .env
+          echo "FRONTEND_URL=https://dealzap.fr" >> .env
+          echo "STRIPE_KEY=$STRIPE_KEY" >> .env
+          echo "STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET" >> .env
+          echo "STRIPE_BASIC_PRICE_ID=$STRIPE_BASIC_PRICE_ID" >> .env
+          echo "STRIPE_STANDARD_PRICE_ID=$STRIPE_STANDARD_PRICE_ID" >> .env
+          echo "EMAIL_PROVIDER=resend" >> .env
+          echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env
+          echo "SENDER_EMAIL=louis@dealzap.fr" >> .env
+
+      - name: Prune api dependencies
+        run: |
+          cd apps/api
+          rm -rf node_modules
+          pnpm install --prod
+      - name: Deploy api
+        env:
+          SSH_USER: ${{ secrets.SERVER_SSH_USER }}
+          SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
+          API_DIR: ~/api-dealzap
+        run: |
+          ssh $SSH_USER@$SSH_HOST "mkdir -p $API_DIR"
+          scp -pr packages/prisma-client/src/generated/client/libquery_engine-debian-openssl-3.0.x.so.node $SSH_USER@$SSH_HOST:$API_DIR
+          scp -pr apps/api/{dist,node_modules,package.json,.env} $SSH_USER@$SSH_HOST:$API_DIR
+      - name: Restart api
+        env:
+          SSH_USER: ${{ secrets.SERVER_SSH_USER }}
+          SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
+          API_DIR: ~/api-dealzap
+        run: |
+          ssh $SSH_USER@$SSH_HOST "cd $API_DIR && pm2 restart --update-env dealzap-api"
