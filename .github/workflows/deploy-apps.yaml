@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed-apps: ${{ steps.changed-api.outputs.result }}
+      changed-worker: ${{ steps.changed-worker.outputs.result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
