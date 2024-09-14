@@ -264,7 +264,8 @@ jobs:
         run: |
           ssh $SSH_USER@$SSH_HOST "mkdir -p $API_DIR"
           scp -pr packages/prisma-client/src/generated/client/libquery_engine-debian-openssl-3.0.x.so.node $SSH_USER@$SSH_HOST:$API_DIR
-          scp -pr apps/api/{dist,node_modules,package.json,.env,*.node} $SSH_USER@$SSH_HOST:$API_DIR
+          scp -pr apps/api/{dist,node_modules,package.json,.env} $SSH_USER@$SSH_HOST:$API_DIR
+          ssh $SSH_USER@$SSH_HOST "cd $API_DIR && cp bcrypt.linux-x64-gnu.node node_modules/@node-rs/bcrypt/"
       - name: Debug and Restart api
         env:
           SSH_USER: ${{ secrets.SERVER_SSH_USER }}

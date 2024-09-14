@@ -8,7 +8,7 @@ export const lucia = new Lucia(new PrismaAdapter(prisma.session, prisma.user), {
   sessionCookie: {
     attributes: {
       secure: NODE_ENV === "production",
-      domain: NODE_ENV === "production" ? ".dealzap.fr" : undefined,
+      domain: NODE_ENV === "production" ? "dealzap.fr" : undefined,
       path: "/",
       sameSite: "lax",
     },
