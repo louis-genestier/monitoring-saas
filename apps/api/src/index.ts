@@ -13,12 +13,14 @@ import { userRoutes } from "./user/controller";
 
 const app = new Hono();
 
+const allowedOrigins = ["https://app.dealzap.fr", "https://admin.dealzap.fr"];
+
 // TODO: handle CORS properly!
 app.use(
   "*",
   cors({
     credentials: true,
-    origin: "*",
+    origin: NODE_ENV === "production" ? allowedOrigins : "*",
   })
 );
 
