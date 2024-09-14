@@ -7,7 +7,7 @@ esbuild
     bundle: true,
     outfile: "dist/bundle.cjs",
     platform: "node",
-    target: "node14",
+    target: "node20",
     plugins: [esbuildPluginTsc()],
     external: ["@node-rs/bcrypt"],
     loader: {

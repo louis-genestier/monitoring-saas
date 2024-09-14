@@ -255,6 +255,7 @@ jobs:
           cd apps/api
           rm -rf node_modules
           pnpm install --prod
+          pnpm rebuild @node-rs/bcrypt
       - name: Deploy api
         env:
           SSH_USER: ${{ secrets.SERVER_SSH_USER }}
