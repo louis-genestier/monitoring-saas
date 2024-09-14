@@ -11,6 +11,17 @@ export default defineConfig({
       "@repo/ui": path.resolve(__dirname, "../../packages/ui/src"),
     },
   },
+  build: {
+    rollupOptions: {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      external: Object.keys(require("./package.json").devDependencies),
+      output: {
+        manualChunks: {
+          vendors: ["react", "react-dom"],
+        },
+      },
+    },
+  },
   // needed for getting cookie on localhost
   server: {
     proxy: {

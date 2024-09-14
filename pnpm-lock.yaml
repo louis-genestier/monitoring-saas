@@ -187,9 +187,6 @@ importers:
       '@tanstack/react-router':
         specifier: ^1.47.1
         version: 1.47.1(react-dom@18.3.1)(react@18.3.1)
-      api:
-        specifier: workspace:*
-        version: link:../api
       hono:
         specifier: ^4.5.4
         version: 4.5.4
@@ -8319,6 +8316,7 @@ packages:
   /is-docker@2.2.1:
     resolution: {integrity: sha512-F+i2BKsFrH66iaUFc0woD8sLy8getkwTwtOBjvs56Cx4CgJDeKQeqfz8wAYiSb8JOprWhHH5p77PbmYCvvUuXQ==}
     engines: {node: '>=8'}
+    hasBin: true
     dev: true
 
   /is-docker@3.0.0:

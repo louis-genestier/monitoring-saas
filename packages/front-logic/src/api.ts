@@ -1,6 +1,4 @@
-import { AppType } from "api";
+import type { AppType } from "api";
 import { hc } from "hono/client";
 
-export const client = hc<AppType>(
-  process.env.NODE_ENV !== "production" ? "/api" : process.env.API_URL || ""
-);
+export const client = hc<AppType>("https://api.dealzap.fr");

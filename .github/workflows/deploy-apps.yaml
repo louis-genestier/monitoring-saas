@@ -61,6 +61,31 @@ jobs:
           echo "Changed worker: ${{ steps.changed-worker.outputs.result }}"
           echo "Changed app-front: ${{ steps.changed-app-front.outputs.result }}"
 
+  deploy-app-front:
+    needs: checks
+    runs-on: ubuntu-latest
+    if: ${{ needs.checks.outputs.changed-app-front == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Install deps
+        run: pnpm install
+      - name: Build app-front
+        env:
+          NODE_ENV: production
+        run: pnpm --filter=app-front build
+      - name: Deploy to netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: apps/app/dist
+          production-branch: main
+          deploy-message: "Deployed to Netlify"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
   deploy-worker:
     needs: checks
     runs-on: ubuntu-latest
