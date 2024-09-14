@@ -4,6 +4,7 @@ import { fetchRakutenPrice } from "./fetchers/rakutenFetcher";
 import logger from "./utils/logger";
 import { prisma } from "./utils/prisma";
 import { shouldSendAlert } from "./utils/shouldSendAlert";
+import { sendEmail } from "./utils/mailer";
 
 const createPricePointAndCheckAlert = async (
   product: { id: string; name: string },
@@ -63,6 +64,7 @@ const checkAlert = async (
       },
       include: {
         Alert: true,
+        user: true,
       },
     });
 
@@ -95,6 +97,12 @@ const checkAlert = async (
         });
 
         // TODO: send notification
+
+        await sendEmail({
+          to: trackedProduct.user.email,
+          subject: `Alerte DealZap: ${product.name} à ${price}€`,
+          text: `Bonjour,\n\nLe produit ${product.name} est disponible à ${price}€ sur un site partenaire de DealZap.\n\nCordialement,\nL'équipe DealZap`,
+        });
 
         logger.info(
           `Sent alert for ${product.name} ${kind === PriceType.NEW ? "(new)" : "(used)"} under ${price}€`

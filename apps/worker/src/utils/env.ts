@@ -5,8 +5,9 @@ config();
 
 const envSchema = object({
   PROXY_URL: optional(string()),
+  RESEND_API_KEY: string(),
 });
 
 const env = parse(envSchema, process.env);
 
-export const { PROXY_URL } = env;
+export const { PROXY_URL, RESEND_API_KEY } = env;

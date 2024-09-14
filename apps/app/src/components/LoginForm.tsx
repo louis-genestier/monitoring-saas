@@ -47,19 +47,15 @@ export const LoginForm = () => {
     } else {
       if (response.status === 401) {
         setApiError("Email ou mot de passe invalide");
-      }
-
-      if (response.status === 403) {
+      } else if (response.status === 403) {
         setApiError("L'email n'est pas vérifié");
-      }
-
-      if (response.status === 429) {
+      } else if (response.status === 429) {
         setApiError(
           "Trop de tentatives de connexion, veuillez réessayer plus tard"
         );
+      } else {
+        setApiError("Une erreur s'est produite, veuillez réessayer");
       }
-
-      setApiError("Une erreur s'est produite, veuillez réessayer");
     }
   };
 

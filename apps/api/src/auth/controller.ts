@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { object, string, pipe, minLength, email, optional } from "valibot";
 import { vValidator } from "@hono/valibot-validator";
-import { hash, verify } from "./service/bcrypt";
+import { hash, compare } from "@node-rs/bcrypt";
 import { Context } from "@/types/honoContext";
 import { prisma } from "@/config/prisma";
 import {
@@ -54,7 +54,7 @@ const routes = app
       });
 
       const passwordHash = user?.password ?? "$2a$12$" + "a".repeat(53);
-      const isValidPassword = await verify(password, passwordHash);
+      const isValidPassword = await compare(password, passwordHash);
 
       if (isValidPassword && user) {
         if (!user.isEmailVerified) {
@@ -123,7 +123,7 @@ const routes = app
       const user = await prisma.user.create({
         data: {
           email,
-          password: await hash(password),
+          password: await hash(password, 12),
           verificationToken,
           isAdmin,
           emailVerifiedAt: isAdmin ? new Date() : null,
@@ -254,7 +254,7 @@ const routes = app
         throw new NotFoundError("Invalid or expired reset token");
       }
 
-      const hashedPassword = await hash(password);
+      const hashedPassword = await hash(password, 12);
 
       await prisma.user.update({
         where: { id: user.id },

@@ -10,7 +10,7 @@ import {
 } from "@/utils/errors";
 import { getPaginationParams } from "@/utils/pagination";
 import { vValidator } from "@hono/valibot-validator";
-import { verify } from "@/auth/service/bcrypt";
+import { compare } from "@node-rs/bcrypt";
 import { Hono } from "hono";
 import { object, string } from "valibot";
 import { productsRoutes } from "./products.controller";
@@ -35,7 +35,7 @@ const routes = app
     });
 
     const passwordHash = user?.password ?? "$2a$12$" + "a".repeat(53);
-    const isValidPassword = await verify(password, passwordHash);
+    const isValidPassword = await compare(password, passwordHash);
 
     if (isValidPassword && user) {
       if (!user.isEmailVerified) {

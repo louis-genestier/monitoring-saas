@@ -29,6 +29,96 @@ jobs:
           else
             echo "result=false" >> $GITHUB_OUTPUT
           fi
+      - name: Changed worker ?
+        id: changed-worker
+        run: |
+          if grep -q '"worker"' turbo_output.json; then
+            echo "result=true" >> $GITHUB_OUTPUT
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-worker:
+    needs: checks
+    runs-on: ubuntu-latest
+    if: ${{ needs.checks.outputs.changed-worker == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Install deps
+        run: pnpm install
+      - name: Check Server Connectivity
+        run: |
+          if nc -z -w5 ${{ secrets.SERVER_SSH_HOST }} 22; then
+            echo "Server is reachable"
+          else
+            echo "Server is not reachable"
+            exit 1
+          fi
+      - name: Setup SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+      - name: Setup SSH known hosts
+        env:
+          SSH_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
+        run: |
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+      - name: Setup SSH tunnel
+        env:
+          SSH_USER: ${{ secrets.SERVER_SSH_USER }}
+          SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
+        run: |
+          ssh -vvv -fN -L 5432:localhost:5432 $SSH_USER@$SSH_HOST
+          if [ $? -eq 0 ]; then
+            echo "SSH tunnel established successfully"
+          else
+            echo "Failed to establish SSH tunnel"
+            exit 1
+          fi
+      - name: Execute prisma migration & seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cd packages/prisma-client
+          pnpm prisma migrate deploy
+          pnpm prisma generate
+      - name: Close SSH tunnel
+        if: always()
+        run: pkill -f "ssh -fN -L 5432:localhost:5432" || true
+      - name: Build worker
+        run: pnpm --filter=worker build
+      - name: Create .env file
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          cd apps/worker
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          echo "NODE_ENV=production" >> .env
+          echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env
+      - name: Prune worker dependencies
+        run: |
+          cd apps/worker
+          rm -rf node_modules
+          pnpm install --prod
+      - name: Deploy worker
+        env:
+          SSH_USER: ${{ secrets.SERVER_SSH_USER }}
+          SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
+          WORKER_DIR: ~/worker-dealzap
+        run: |
+          ssh $SSH_USER@$SSH_HOST "mkdir -p $WORKER_DIR"
+          scp -pr packages/prisma-client/src/generated/client/libquery_engine-debian-openssl-3.0.x.so.node $SSH_USER@$SSH_HOST:$WORKER_DIR
+          scp -pr apps/worker/{dist,node_modules,package.json,.env} $SSH_USER@$SSH_HOST:$WORKER_DIR
 
   deploy-api:
     needs: checks
@@ -112,7 +202,6 @@ jobs:
           echo "EMAIL_PROVIDER=resend" >> .env
           echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env
           echo "SENDER_EMAIL=louis@dealzap.fr" >> .env
-
       - name: Prune api dependencies
         run: |
           cd apps/api
@@ -127,10 +216,37 @@ jobs:
           ssh $SSH_USER@$SSH_HOST "mkdir -p $API_DIR"
           scp -pr packages/prisma-client/src/generated/client/libquery_engine-debian-openssl-3.0.x.so.node $SSH_USER@$SSH_HOST:$API_DIR
           scp -pr apps/api/{dist,node_modules,package.json,.env} $SSH_USER@$SSH_HOST:$API_DIR
-      - name: Restart api
+      - name: Debug and Restart api
         env:
           SSH_USER: ${{ secrets.SERVER_SSH_USER }}
           SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
           API_DIR: ~/api-dealzap
+          NODE_VERSION: 18 # Replace with your actual Node.js version
         run: |
-          ssh $SSH_USER@$SSH_HOST "cd $API_DIR && pm2 restart --update-env dealzap-api"
+          ssh $SSH_USER@$SSH_HOST "
+            echo 'DEBUG: Loading nvm';
+            export NVM_DIR=\"\$HOME/.nvm\";
+            [ -s \"\$NVM_DIR/nvm.sh\" ] && \. \"\$NVM_DIR/nvm.sh\";
+            
+            echo 'DEBUG: Switching to Node.js version $NODE_VERSION';
+            nvm use $NODE_VERSION;
+            
+            echo 'DEBUG: Current Node.js version';
+            node --version;
+            
+            echo 'DEBUG: NPM version';
+            npm --version;
+            
+            echo 'DEBUG: PM2 location';
+            which pm2;
+            
+            echo 'DEBUG: Current directory';
+            pwd;
+            
+            cd $API_DIR;
+            echo 'DEBUG: API directory content';
+            ls -la;
+            
+            echo 'Attempting to restart PM2 process';
+            pm2 restart --update-env dealzap-api;
+          "
