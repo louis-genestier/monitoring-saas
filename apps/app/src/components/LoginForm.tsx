@@ -21,7 +21,7 @@ import { client } from "@repo/front-logic";
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(12),
+  password: z.string().min(8),
 });
 
 export const LoginForm = () => {
