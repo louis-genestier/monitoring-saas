@@ -95,6 +95,8 @@ const routes = app
     async (c) => {
       const { password, email, invitationCode } = c.req.valid("json");
 
+      console.log("admin emails", ADMIN_EMAILS);
+
       const isAdmin = ADMIN_EMAILS?.split(",").includes(email);
 
       const invitation = await prisma.invitationCode.findFirst({

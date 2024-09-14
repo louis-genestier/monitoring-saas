@@ -8,8 +8,14 @@ export const rateLimiterInstance = (limit: number, windowMin: number) =>
     limit, // Number of requests allowed in the windowMs time period
     keyGenerator: (c) => {
       const conn = getConnInfo(c);
-      console.log(conn);
-      return conn.remote.address ?? "unknown";
+      const ip =
+        c.req.header("X-Forwarded-For") ||
+        c.req.header("X-Real-IP") ||
+        conn.remote.address ||
+        "unknown";
+
+      console.log(ip);
+      return ip;
     },
     standardHeaders: "draft-6",
   });
