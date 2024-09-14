@@ -26,7 +26,6 @@
   },
   "devDependencies": {
     "@repo/prisma-client": "workspace:*",
-    "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.11.17",
     "esbuild": "^0.23.1",
     "esbuild-plugin-tsc": "^0.4.0",

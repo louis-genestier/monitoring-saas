@@ -95,8 +95,6 @@ const routes = app
     async (c) => {
       const { password, email, invitationCode } = c.req.valid("json");
 
-      console.log("admin emails", ADMIN_EMAILS);
-
       const isAdmin = ADMIN_EMAILS?.split(",").includes(email);
 
       const invitation = await prisma.invitationCode.findFirst({
@@ -106,8 +104,10 @@ const routes = app
         },
       });
 
-      if (!invitation && !isAdmin && NODE_ENV === "production") {
-        throw new ForbiddenError("Invalid invitation code");
+      if (NODE_ENV === "production") {
+        if (!invitation && !isAdmin) {
+          throw new ForbiddenError("Invalid invitation code");
+        }
       }
 
       const foundUser = await prisma.user.findUnique({

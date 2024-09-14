@@ -9,6 +9,7 @@ esbuild
     platform: "node",
     target: "node14",
     plugins: [esbuildPluginTsc()],
+    external: ["@node-rs/bcrypt"],
     loader: {
       ".node": "file",
     },
