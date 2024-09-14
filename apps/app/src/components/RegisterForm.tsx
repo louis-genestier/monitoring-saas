@@ -25,10 +25,10 @@ const registerSchema = z
     email: z.string().email("Adresse e-mail invalide"),
     password: z
       .string()
-      .min(12, "Le mot de passe doit contenir au moins 12 caractères"),
+      .min(8, "Le mot de passe doit contenir au moins 8 caractères"),
     confirmPassword: z
       .string()
-      .min(12, "Le mot de passe doit contenir au moins 12 caractères"),
+      .min(8, "Le mot de passe doit contenir au moins 8 caractères"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas",
@@ -51,6 +51,7 @@ export const RegisterForm = () => {
       password: "",
       confirmPassword: "",
     },
+    mode: "onChange",
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
