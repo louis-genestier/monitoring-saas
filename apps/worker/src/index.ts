@@ -96,12 +96,11 @@ const checkAlert = async (
           },
         });
 
-        // TODO: send notification
-
+        // TODO: send URL too
         await sendEmail({
           to: trackedProduct.user.email,
           subject: `Alerte DealZap: ${product.name} à ${price}€`,
-          text: `Bonjour,\n\nLe produit ${product.name} est disponible à ${price}€ sur un site partenaire de DealZap.\n\nCordialement,\nL'équipe DealZap`,
+          text: `Bonjour,\n\nLe produit ${product.name} est disponible à ${price}€ sur un site partenaire de DealZap, vous pouvez y accéder ici.\n\nCordialement,\nL'équipe DealZap`,
         });
 
         logger.info(

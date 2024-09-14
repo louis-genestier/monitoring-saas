@@ -22,22 +22,32 @@ jobs:
         id: changeset
         run: |
           pnpm turbo run build --filter="{apps/*}[HEAD^1]" --dry-run=json > turbo_output.json
+          echo "Turbo output:"
+          cat turbo_output.json
       - name: Changed api ?
         id: changed-api
         run: |
           if grep -q '"api"' turbo_output.json; then
+            echo "API changes detected"
             echo "result=true" >> $GITHUB_OUTPUT
           else
+            echo "No API changes detected"
             echo "result=false" >> $GITHUB_OUTPUT
           fi
       - name: Changed worker ?
         id: changed-worker
         run: |
           if grep -q '"worker"' turbo_output.json; then
+            echo "Worker changes detected"
             echo "result=true" >> $GITHUB_OUTPUT
           else
+            echo "No worker changes detected"
             echo "result=false" >> $GITHUB_OUTPUT
           fi
+      - name: Debug Outputs
+        run: |
+          echo "Changed apps: ${{ steps.changed-api.outputs.result }}"
+          echo "Changed worker: ${{ steps.changed-worker.outputs.result }}"
 
   deploy-worker:
     needs: checks

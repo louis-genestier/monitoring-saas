@@ -322,6 +322,9 @@ importers:
       '@types/node':
         specifier: ^22.5.0
         version: 22.5.4
+      esbuild:
+        specifier: ^0.23.1
+        version: 0.23.1
       esbuild-plugin-tsc:
         specifier: ^0.4.0
         version: 0.4.0(typescript@5.5.4)

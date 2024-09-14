@@ -1,0 +1,193 @@
+{
+  "id": "2m400mHF3C0D1uZTASEwxxBHzVf",
+  "version": "1",
+  "turboVersion": "2.0.12",
+  "monorepo": true,
+  "globalCacheInputs": {
+    "rootKey": "I can’t see ya, but I know you’re here",
+    "files": {},
+    "hashOfExternalDependencies": "617946ef403e4ab3",
+    "hashOfInternalDependencies": "",
+    "environmentVariables": {
+      "specified": {
+        "env": [],
+        "passThroughEnv": null
+      },
+      "configured": [],
+      "inferred": [],
+      "passthrough": null
+    },
+    "engines": {
+      "node": ">=18"
+    }
+  },
+  "packages": [
+    "scraper-aio"
+  ],
+  "envMode": "strict",
+  "frameworkInference": true,
+  "tasks": [
+    {
+      "taskId": "@repo/prisma-client#build",
+      "task": "build",
+      "package": "@repo/prisma-client",
+      "hash": "417219ef7f4873ee",
+      "inputs": {
+        ".env": "c6f04b604441efa0e60bea428891ae4383472b1f",
+        ".gitignore": "c4b31d9c90e7d802fd082ab3c2ea5c2de335f96b",
+        "migrations/20240807203850_init_user/migration.sql": "70f367431b9ccbc6079f08c6f17a3d5deff1c6d6",
+        "migrations/20240808071636_add_sessions/migration.sql": "58bee1e2b4d80020f3a99c449f44df6251ad3bb7",
+        "migrations/20240808071714_cascade_user_session/migration.sql": "eed041d100e2e62b7b412b60ce177fa5ff365f3a",
+        "migrations/20240809094501_add_stripe_id/migration.sql": "f99c27180d06d6faf716bef9a07211180e25feec",
+        "migrations/20240809142915_add_plan_name/migration.sql": "1e0e73283f5dc4a6466569f894872f8e53f01d68",
+        "migrations/20240809163152_add_reset_password_token/migration.sql": "062843d513eccace22186ecfa148c8c60c8e608c",
+        "migrations/20240903073542_add_website_and_product/migration.sql": "787129380898b3b88e9c3f94ebe5a9c7baff4182",
+        "migrations/20240904123301_add_website_parameters/migration.sql": "d01029d570ba5548c0bc0c985e79748310693073",
+        "migrations/20240905055446_add_product_tracked/migration.sql": "eb04aa7c3350ab4de367e8801899b24f97465e16",
+        "migrations/20240905134353_price_point_new_used/migration.sql": "d798cb2dfefe7de19407457e71bb73863f3b8ab7",
+        "migrations/20240910074003_add_invitation_code/migration.sql": "da8851e4e3e61bb881b174e39f4a6db15c9fdf25",
+        "migrations/migration_lock.toml": "fbffa92c2bb7c748d6fc78f9f9dcac604dabb87d",
+        "package.json": "69e00bc69714180ca8ead3e75e3d272401297eaf",
+        "prisma/seed.ts": "2632396a2e61eae48f8299ff7f92442cc5108886",
+        "schema.prisma": "8f2ef431a765ed9922487e9321193ee460784945",
+        "src/index.ts": "ee1d42c938e2b268bbb65ee0d234798b73f3950a"
+      },
+      "hashOfExternalDependencies": "9dc1efa9d132ad89",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      },
+      "command": "<NONEXISTENT>",
+      "cliArguments": [],
+      "outputs": [
+        ".next/**"
+      ],
+      "excludedOutputs": [
+        ".next/cache/**"
+      ],
+      "logFile": "packages/prisma-client/.turbo/turbo-build.log",
+      "directory": "packages/prisma-client",
+      "dependencies": [],
+      "dependents": [
+        "scraper-aio#build"
+      ],
+      "resolvedTaskDefinition": {
+        "outputs": [
+          "!.next/cache/**",
+          ".next/**"
+        ],
+        "cache": true,
+        "dependsOn": [
+          "^build"
+        ],
+        "inputs": [
+          "$TURBO_DEFAULT$",
+          ".env*"
+        ],
+        "outputLogs": "full",
+        "persistent": false,
+        "env": [],
+        "passThroughEnv": null,
+        "interactive": false
+      },
+      "expandedOutputs": [],
+      "framework": "",
+      "envMode": "strict",
+      "environmentVariables": {
+        "specified": {
+          "env": [],
+          "passThroughEnv": null
+        },
+        "configured": [],
+        "inferred": [],
+        "passthrough": null
+      }
+    },
+    {
+      "taskId": "scraper-aio#build",
+      "task": "build",
+      "package": "scraper-aio",
+      "hash": "8d31781124655a84",
+      "inputs": {
+        ".env": "f11fc2059652f4125ce1a38023b6b1b101c81dda",
+        ".gitignore": "f4c4a3a2d52f58d898b6c4b6bcf2fb8bfd206b5e",
+        "build.cjs": "98cd719c3633a7cb56059af2467b704443003232",
+        "package.json": "d2dbb29dfb21ea2c903bafda6344d6fa0729772b",
+        "pnpm-lock.yaml": "378dbccb249bcff4ac9b353b09d4bd622c71562a",
+        "src/fetchers/fetcher.ts": "e959fa62434e17bc130a09e80b63f6ae84d3f1ca",
+        "src/fetchers/fnacFetcher.ts": "46022ad115690ae32b779fd2f07cc7fb3856506f",
+        "src/fetchers/rakutenFetcher.ts": "5cf7797d7b7e11b1d5a8590c13c693529e23097b",
+        "src/index.ts": "4005231c835b4f1ad02d98da09ab316e00e873af",
+        "src/shouldSendAlert.test.ts": "8ec750296f842edea6b144c1d0011bbaf8cb0d4f",
+        "src/utils/axios.ts": "7a9b38c7fa973b967209152c7aae129ebae90866",
+        "src/utils/env.ts": "3c9c5e418ebf7d8eb801c1d2fcd771c231ba1ae5",
+        "src/utils/logger.ts": "609f55aa633b95953ad7f736d803e7a63000d741",
+        "src/utils/mailer.ts": "6fede38e9c6c7a260bee13f826c221de23a84c50",
+        "src/utils/prisma.ts": "fa1a995ae0178dbf60c469455730d0a56067958f",
+        "src/utils/shouldSendAlert.ts": "6f4177c174190decc5b90bfcd426be45e309c776",
+        "tsconfig.json": "353a955ffe7d37021db540fc104f85b2b9b55846"
+      },
+      "hashOfExternalDependencies": "a718c6ae3b4d27bc",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      },
+      "command": "node build.cjs",
+      "cliArguments": [],
+      "outputs": [
+        ".next/**"
+      ],
+      "excludedOutputs": [
+        ".next/cache/**"
+      ],
+      "logFile": "apps/worker/.turbo/turbo-build.log",
+      "directory": "apps/worker",
+      "dependencies": [
+        "@repo/prisma-client#build"
+      ],
+      "dependents": [],
+      "resolvedTaskDefinition": {
+        "outputs": [
+          "!.next/cache/**",
+          ".next/**"
+        ],
+        "cache": true,
+        "dependsOn": [
+          "^build"
+        ],
+        "inputs": [
+          "$TURBO_DEFAULT$",
+          ".env*"
+        ],
+        "outputLogs": "full",
+        "persistent": false,
+        "env": [],
+        "passThroughEnv": null,
+        "interactive": false
+      },
+      "expandedOutputs": [],
+      "framework": "",
+      "envMode": "strict",
+      "environmentVariables": {
+        "specified": {
+          "env": [],
+          "passThroughEnv": null
+        },
+        "configured": [],
+        "inferred": [],
+        "passthrough": null
+      }
+    }
+  ],
+  "user": "",
+  "scm": {
+    "type": "git",
+    "sha": "18317b7b066cd13696749ddead4662fc51785943",
+    "branch": "main"
+  }
+}
+
