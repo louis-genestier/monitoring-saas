@@ -69,17 +69,6 @@ export const EditTrackedProduct = () => {
     },
   });
 
-  //   React.useEffect(() => {
-  //     if (trackedProduct) {
-  //       form.reset({
-  //         threshold: trackedProduct.threshold,
-  //         alertProviderId: trackedProduct.alertProviderId,
-  //         isEnabled: trackedProduct.isEnabled,
-  //         priceType: trackedProduct.priceType,
-  //       });
-  //     }
-  //   }, [trackedProduct, form]);
-
   const onSubmit = (data: FormValues) => {
     updateTrackedProduct(
       {
