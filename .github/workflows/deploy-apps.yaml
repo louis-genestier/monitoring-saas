@@ -8,8 +8,9 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     outputs:
-      changed-apps: ${{ steps.changed-api.outputs.result }}
+      changed-api: ${{ steps.changed-api.outputs.result }}
       changed-worker: ${{ steps.changed-worker.outputs.result }}
+      changed-app-front: ${{ steps.changed-app-front.outputs.result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,10 +45,21 @@ jobs:
             echo "No worker changes detected"
             echo "result=false" >> $GITHUB_OUTPUT
           fi
+      - name: Changed app-front ?
+        id: changed-app-front
+        run: |
+          if grep -q '"app-front"' turbo_output.json; then
+            echo "App-front changes detected"
+            echo "result=true" >> $GITHUB_OUTPUT
+          else
+            echo "No app-front changes detected"
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
       - name: Debug Outputs
         run: |
           echo "Changed apps: ${{ steps.changed-api.outputs.result }}"
           echo "Changed worker: ${{ steps.changed-worker.outputs.result }}"
+          echo "Changed app-front: ${{ steps.changed-app-front.outputs.result }}"
 
   deploy-worker:
     needs: checks
@@ -134,7 +146,7 @@ jobs:
   deploy-api:
     needs: checks
     runs-on: ubuntu-latest
-    if: ${{ needs.checks.outputs.changed-apps == 'true' }}
+    if: ${{ needs.checks.outputs.changed-api == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
