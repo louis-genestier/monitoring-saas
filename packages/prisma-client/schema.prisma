@@ -116,7 +116,7 @@ model PricePoint {
 
 model AlertProvider {
     id             String           @id @default(cuid())
-    name           String
+    name           String           @unique
     createdAt      DateTime         @default(now())
     updatedAt      DateTime         @updatedAt
     TrackedProduct TrackedProduct[]

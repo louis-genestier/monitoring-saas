@@ -34,8 +34,16 @@ async function main() {
     ],
   });
 
-  await prisma.alertProvider.create({
-    data: {
+  // await prisma.alertProvider.create({
+  //   data: {
+  //     name: "email",
+  //   },
+  // });
+
+  await prisma.alertProvider.upsert({
+    where: { name: "email" },
+    update: {},
+    create: {
       name: "email",
     },
   });
