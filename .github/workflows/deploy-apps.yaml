@@ -11,6 +11,7 @@ jobs:
       changed-api: ${{ steps.changed-api.outputs.result }}
       changed-worker: ${{ steps.changed-worker.outputs.result }}
       changed-app-front: ${{ steps.changed-app-front.outputs.result }}
+      changed-admin: ${{ steps.changed-admin.outputs.result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,11 +56,47 @@ jobs:
             echo "No app-front changes detected"
             echo "result=false" >> $GITHUB_OUTPUT
           fi
+      - name: Changed admin ?
+        id: changed-admin
+        run: |
+          if grep -q '"admin"' turbo_output.json; then
+            echo "Admin changes detected"
+            echo "result=true" >> $GITHUB_OUTPUT
+          else
+            echo "No Admin changes detected"
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
       - name: Debug Outputs
         run: |
           echo "Changed apps: ${{ steps.changed-api.outputs.result }}"
           echo "Changed worker: ${{ steps.changed-worker.outputs.result }}"
           echo "Changed app-front: ${{ steps.changed-app-front.outputs.result }}"
+          echo "Changed admin: ${{ steps.changed-admin.outputs.result }}"
+
+  deploy-admin-front:
+    needs: checks
+    runs-on: ubuntu-latest
+    if: ${{ needs.checks.outputs.changed-admin == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Install deps
+        run: pnpm install
+      - name: Build admin
+        env:
+          NODE_ENV: production
+        run: pnpm --filter=admin build
+      - name: Deploy to netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: apps/admin/dist
+          production-branch: main
+          deploy-message: "Deployed to Netlify"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          NETLIFY_SITE_ID: 86052418-72f0-43d2-9032-981d3723efcf
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
   deploy-app-front:
     needs: checks
