@@ -83,6 +83,7 @@ export const LoginForm = () => {
                     className={`w-full p-2 rounded-md ${
                       form.formState.errors.email ? "border-red-500" : ""
                     } text-base`}
+                    type="email"
                   />
                 </FormControl>
                 <div className="h-5">

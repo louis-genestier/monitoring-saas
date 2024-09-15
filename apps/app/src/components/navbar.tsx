@@ -57,7 +57,7 @@ const NavContent = ({
           </Link>
         </li>
       </ul>
-      <div className="p-4">
+      <div className="p-4 mb-28 md:mb-0">
         <Button
           onClick={handleLogout}
           variant="ghost"
