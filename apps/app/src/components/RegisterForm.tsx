@@ -112,7 +112,7 @@ export const RegisterForm = () => {
                   {...field}
                   type="email"
                   placeholder="jean@exemple.com"
-                  className="w-full p-2 rounded-md"
+                  className="w-full p-2 rounded-md text-base"
                 />
               </FormControl>
               <FormMessage />
@@ -130,7 +130,7 @@ export const RegisterForm = () => {
                   {...field}
                   type="password"
                   placeholder="••••••••"
-                  className="w-full p-2 rounded-md"
+                  className="w-full p-2 rounded-md text-base"
                 />
               </FormControl>
               <FormMessage />
@@ -148,7 +148,7 @@ export const RegisterForm = () => {
                   {...field}
                   type="password"
                   placeholder="••••••••"
-                  className="w-full p-2 rounded-md"
+                  className="w-full p-2 rounded-md text-base"
                 />
               </FormControl>
               <FormMessage />

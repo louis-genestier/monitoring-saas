@@ -82,7 +82,7 @@ export const LoginForm = () => {
                     {...field}
                     className={`w-full p-2 rounded-md ${
                       form.formState.errors.email ? "border-red-500" : ""
-                    }`}
+                    } text-base`}
                   />
                 </FormControl>
                 <div className="h-5">
@@ -104,7 +104,7 @@ export const LoginForm = () => {
                     type="password"
                     placeholder="••••••••"
                     {...field}
-                    className="w-full p-2 rounded-md"
+                    className="w-full p-2 rounded-md text-base"
                   />
                 </FormControl>
                 <div className="h-5">
