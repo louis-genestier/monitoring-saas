@@ -5,7 +5,7 @@ import { Context } from "@/types/honoContext";
 import { getPaginationParams } from "@/utils/pagination";
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
-import { boolean, object, optional, string } from "valibot";
+import { boolean, object, optional, pipe, string, url } from "valibot";
 
 const websiteSchema = object({
   name: string(),
@@ -13,6 +13,7 @@ const websiteSchema = object({
   headers: string(),
   isEnabled: boolean(),
   parameters: optional(string()),
+  baseUrl: pipe(string(), url()),
 });
 
 const app = new Hono<Context>();
@@ -51,7 +52,7 @@ const routes = app
     adminMiddleware,
     vValidator("json", websiteSchema),
     async (c) => {
-      const { name, apiBaseurl, headers, isEnabled, parameters } =
+      const { name, apiBaseurl, headers, isEnabled, parameters, baseUrl } =
         c.req.valid("json");
 
       let parsedHeaders;
@@ -76,6 +77,7 @@ const routes = app
           headers: parsedHeaders,
           isEnabled,
           parameters,
+          baseUrl,
         },
       });
 

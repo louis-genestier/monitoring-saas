@@ -48,6 +48,7 @@ const websiteSchema = z.object({
   headers: z.string(),
   parameters: z.string().optional(),
   isEnabled: z.boolean(),
+  baseUrl: z.string().url(),
 });
 
 type WebsiteFormValues = z.infer<typeof websiteSchema>;
@@ -70,6 +71,7 @@ export const Websites: React.FC = () => {
       headers: "{}",
       parameters: "",
       isEnabled: true,
+      baseUrl: "",
     },
   });
 
@@ -161,6 +163,7 @@ export const Websites: React.FC = () => {
       headers: website.headers,
       parameters: website.parameters || "",
       isEnabled: website.isEnabled,
+      baseUrl: website.baseUrl,
     });
     setIsDialogOpen(true);
   };
@@ -187,6 +190,7 @@ export const Websites: React.FC = () => {
       headers: "{}",
       parameters: "",
       isEnabled: true,
+      baseUrl: "",
     });
   };
 
@@ -233,6 +237,7 @@ export const Websites: React.FC = () => {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>API Base URL</TableHead>
+                  <TableHead>Base URL</TableHead>
                   <TableHead>Enabled</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -245,6 +250,9 @@ export const Websites: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
                       {website.apiBaseurl}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {website.baseUrl}
                     </TableCell>
                     <TableCell>
                       <Checkbox
@@ -321,6 +329,19 @@ export const Websites: React.FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>API Base URL</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="w-full" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="baseUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Base URL</FormLabel>
                     <FormControl>
                       <Input {...field} className="w-full" />
                     </FormControl>

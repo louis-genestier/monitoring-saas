@@ -279,7 +279,7 @@ jobs:
           echo "NODE_ENV=production" >> .env
           echo "PORT=$API_PORT" >> .env
           echo "ADMIN_EMAILS=louis.genestier@protonmail.com" >> .env
-          echo "FRONTEND_URL=https://dealzap.fr" >> .env
+          echo "FRONTEND_URL=https://app.dealzap.fr" >> .env
           echo "STRIPE_KEY=$STRIPE_KEY" >> .env
           echo "STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET" >> .env
           echo "STRIPE_BASIC_PRICE_ID=$STRIPE_BASIC_PRICE_ID" >> .env
