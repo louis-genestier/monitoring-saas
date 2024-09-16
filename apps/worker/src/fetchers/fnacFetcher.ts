@@ -136,8 +136,13 @@ export const fetchFnacPrice = async ({
 }) => {
   const item = await fetcher<ItemResponse>(apiBaseUrl, headers, id);
 
+  const mainPrice = item.InfosPrice.MainOffer.UserPrice;
+  const bestNewOffer = item.InfosPrice.BestNewOffer?.UserPrice;
+
+  const newPrice = bestNewOffer ? Math.min(mainPrice, bestNewOffer) : mainPrice;
+
   return {
-    new: item.InfosPrice.BestNewOffer?.Price || item.InfosPrice.MainOffer.Price,
+    new: newPrice,
     used: item.InfosPrice.BestUsedOffer?.Price,
   };
 };
