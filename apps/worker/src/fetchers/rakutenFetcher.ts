@@ -341,16 +341,16 @@ type ItemResponse = {
 
 export const fetchRakutenPrice = async ({
   id,
-  url,
+  apiBaseUrl,
   headers,
   parameters,
 }: {
   id: string;
-  url: string;
+  apiBaseUrl: string;
   headers: JsonValue;
   parameters: string;
 }) => {
-  const item = await fetcher<ItemResponse>(url, headers, id, parameters);
+  const item = await fetcher<ItemResponse>(apiBaseUrl, headers, id, parameters);
 
   return {
     new: item.newBestPrice,

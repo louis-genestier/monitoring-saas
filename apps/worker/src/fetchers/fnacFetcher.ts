@@ -127,14 +127,14 @@ type ItemResponse = {
 
 export const fetchFnacPrice = async ({
   id,
-  url,
+  apiBaseUrl,
   headers,
 }: {
   id: string;
-  url: string;
+  apiBaseUrl: string;
   headers: JsonValue;
 }) => {
-  const item = await fetcher<ItemResponse>(url, headers, id);
+  const item = await fetcher<ItemResponse>(apiBaseUrl, headers, id);
 
   return {
     new: item.InfosPrice.BestNewOffer?.Price || item.InfosPrice.MainOffer.Price,

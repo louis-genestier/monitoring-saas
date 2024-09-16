@@ -74,7 +74,7 @@ model Website {
     id         String       @id @default(cuid())
     name       String       @unique
     apiBaseurl String
-    baseUrl    String?
+    baseUrl    String
     headers    Json?
     parameters String?
     isEnabled  Boolean      @default(true)

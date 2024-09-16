@@ -10,7 +10,10 @@ const createPricePointAndCheckAlert = async (
   product: { id: string; name: string },
   price: number,
   websiteId: string,
-  priceType: PriceType
+  websiteName: string,
+  priceType: PriceType,
+  baseUrl: string,
+  externalId: string
 ) => {
   try {
     const previousPricePoint = await prisma.pricePoint.findFirst({
@@ -38,7 +41,10 @@ const createPricePointAndCheckAlert = async (
       price,
       previousPricePoint,
       createdPricePoint,
-      priceType
+      priceType,
+      baseUrl,
+      websiteName,
+      externalId
     );
   } catch (error) {
     logger.error(`Error in createPricePointAndCheckAlert: ${error}`);
@@ -50,7 +56,10 @@ const checkAlert = async (
   price: number,
   previousPricePoint: PricePoint | null,
   createdPricePoint: PricePoint,
-  kind: PriceType
+  kind: PriceType,
+  baseUrl: string,
+  websiteName: string,
+  externalId: string
 ) => {
   try {
     const trackedProducts = await prisma.trackedProduct.findMany({
@@ -96,11 +105,17 @@ const checkAlert = async (
           },
         });
 
-        // TODO: send URL too
+        let productUrl = `${baseUrl}${externalId}`;
+
+        if (websiteName === "fnac") {
+          // product for api is 1234-1 but for website is a1234
+          const id = `a${externalId.split("-")[0]}`;
+          productUrl = `${baseUrl}${id}`;
+        }
         await sendEmail({
           to: trackedProduct.user.email,
           subject: `Alerte DealZap: ${product.name} à ${price}€`,
-          text: `Bonjour,\n\nLe produit ${product.name} est disponible à ${price}€ sur un site partenaire de DealZap, vous pouvez y accéder ici.\n\nCordialement,\nL'équipe DealZap`,
+          text: `Bonjour,\n\nLe produit ${product.name} est disponible à ${price}€ sur ${websiteName}, vous pouvez y accéder ici ${productUrl}.`,
         });
 
         logger.info(
@@ -135,11 +150,12 @@ const fetchPrices = async () => {
     for (const product of products) {
       const websites = product.ProductId.map((productId) => ({
         name: productId.website.name,
-        url: productId.website.apiBaseurl,
-        productId: productId.externalId,
+        apiBaseUrl: productId.website.apiBaseurl,
+        productExternalId: productId.externalId,
         headers: productId.website.headers,
         parameters: productId.website.parameters,
         websiteId: productId.websiteId,
+        baseUrl: productId.website.baseUrl,
       }));
       logger.info(`${websites.length} websites found for ${product.name}`);
 
@@ -153,15 +169,15 @@ const fetchPrices = async () => {
           switch (website.name) {
             case "fnac":
               prices = await fetchFnacPrice({
-                id: website.productId,
-                url: website.url,
+                id: website.productExternalId,
+                apiBaseUrl: website.apiBaseUrl,
                 headers: website.headers,
               });
               break;
             case "rakuten":
               prices = await fetchRakutenPrice({
-                id: website.productId,
-                url: website.url,
+                id: website.productExternalId,
+                apiBaseUrl: website.apiBaseUrl,
                 headers: website.headers,
                 parameters: website.parameters!,
               });
@@ -184,7 +200,10 @@ const fetchPrices = async () => {
                 product,
                 prices.new,
                 website.websiteId,
-                PriceType.NEW
+                website.name,
+                PriceType.NEW,
+                website.baseUrl,
+                website.productExternalId
               );
             }
 
@@ -200,7 +219,10 @@ const fetchPrices = async () => {
                 product,
                 prices.used,
                 website.websiteId,
-                PriceType.USED
+                website.name,
+                PriceType.USED,
+                website.baseUrl,
+                website.productExternalId
               );
             }
           }
