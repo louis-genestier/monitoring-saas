@@ -60,3 +60,4 @@ export {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+export { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";

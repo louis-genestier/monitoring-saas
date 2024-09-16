@@ -121,6 +121,21 @@ const routes = app
       where: { id },
     });
     return c.json({ message: "Product deleted successfully" });
+  })
+  .get("/:id/price-points", sessionMiddleware, adminMiddleware, async (c) => {
+    const id = c.req.param("id");
+
+    const pricePoints = await prisma.pricePoint.findMany({
+      where: { productId: id },
+      orderBy: {
+        timestamp: "desc",
+      },
+      include: {
+        website: true,
+      },
+    });
+
+    return c.json(pricePoints);
   });
 
 export { routes as productsRoutes };

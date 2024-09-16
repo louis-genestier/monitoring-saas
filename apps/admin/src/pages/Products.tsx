@@ -35,8 +35,10 @@ import {
   TrashIcon,
   PackageIcon,
   ArrowLeftIcon,
+  DollarSignIcon,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { ProductPriceChart } from "../components/productPriceChart";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -72,9 +74,20 @@ export const Products: React.FC = () => {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectProductId, setSelectProductId] = useState<string | null>(null);
+  const [isPricesDialogOpen, setIsPricesDialogOpen] = useState(false);
   const [formData, setFormData] = useState<ProductFormValues>({
     name: "",
     externalIds: [],
+  });
+
+  const { data: pricePoints, isLoading: arePricesPointsLoading } = useQuery({
+    queryKey: ["pricePoints", selectProductId],
+    queryFn: () =>
+      client.admin.products[":id"]["price-points"]
+        .$get({ param: { id: selectProductId! } })
+        .then((res) => res.json()),
+    enabled: !!selectProductId,
   });
 
   const { data: products, isLoading: productsLoading } = useQuery<{
@@ -207,6 +220,11 @@ export const Products: React.FC = () => {
     });
   };
 
+  const handlePricesDialogClose = () => {
+    setIsPricesDialogOpen(false);
+    setSelectProductId(null);
+  };
+
   if (productsLoading || websitesLoading) return <div>Loading...</div>;
 
   return (
@@ -262,6 +280,18 @@ export const Products: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Button
+                        variant="outline"
+                        size="sm"
+                        className="mr-2"
+                        onClick={() => {
+                          setSelectProductId(product.id);
+                          setIsPricesDialogOpen(true);
+                        }}
+                      >
+                        <DollarSignIcon className="w-4 h-4 mr-1" />
+                        Prices
+                      </Button>
+                      <Button
                         onClick={() => handleEdit(product)}
                         variant="outline"
                         size="sm"
@@ -286,6 +316,28 @@ export const Products: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isPricesDialogOpen} onOpenChange={handlePricesDialogClose}>
+        <DialogContent className="bg-white max-w-none w-4/5">
+          <DialogHeader>
+            <DialogTitle>
+              {products?.items.find((p) => p.id === selectProductId)?.name}{" "}
+              Prices
+            </DialogTitle>
+            <DialogDescription>
+              Prices for the selected product from different websites.
+            </DialogDescription>
+
+            <div>
+              {!pricePoints ? (
+                <p>No prices for this product</p>
+              ) : (
+                <ProductPriceChart data={pricePoints} />
+              )}
+            </div>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="bg-white">
