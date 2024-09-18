@@ -45,6 +45,26 @@ async function main() {
     },
   });
 
+  await prisma.website.upsert({
+    where: { name: "cultura" },
+    update: {},
+    create: {
+      name: "cultura",
+      apiBaseurl: "https://www.cultura.com/magento/graphql",
+      baseUrl: "https://www.cultura.com/p-",
+      isEnabled: true,
+      parameters:
+        'query={products(filter:{sku:{eq:"ID_TO_REPLACE"}}){items{ean stock_status url_suffix price_range{minimum_price{final_price{value}}}}}}',
+      headers: {
+        accept: "application/json",
+        "user-agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "Content-Type": "application/json",
+        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+      },
+    },
+  });
+
   await prisma.alertProvider.upsert({
     where: { name: "email" },
     update: {},

@@ -107,7 +107,71 @@ const routes = app
     vValidator("json", productSchema),
     async (c) => {
       const id = c.req.param("id");
-      const { name } = c.req.valid("json");
+      const { name, externalIds } = c.req.valid("json");
+
+      const externalIdsFromRequest = externalIds?.map((externalId) => ({
+        productId: id,
+        websiteId: externalId.websiteId,
+        externalId: externalId.value,
+      }));
+
+      const productIds = await prisma.productId.findMany({
+        where: { productId: id },
+      });
+
+      const productIdsToDelete = productIds.filter((productId) => {
+        return !externalIdsFromRequest?.some((externalId) => {
+          return productId.websiteId === externalId.websiteId;
+        });
+      });
+
+      const productIdsToCreate = externalIdsFromRequest?.filter(
+        (externalId) => {
+          return !productIds.some((productId) => {
+            return productId.websiteId === externalId.websiteId;
+          });
+        }
+      );
+
+      // const productIdsToUpdate = externalIdsFromRequest?.filter(
+      //   (externalId) => {
+      //     return productIds.some((productId) => {
+      //       return productId.websiteId === externalId.websiteId;
+      //     });
+      //   }
+      // );
+
+      await prisma.productId.deleteMany({
+        where: {
+          productId: id,
+          websiteId: { in: productIdsToDelete.map((p) => p.websiteId) },
+        },
+      });
+
+      // if (productIdsToUpdate) {
+      //   await Promise.all(
+      //     productIdsToUpdate.map((productId) => {
+      //       return prisma.productId.update({
+      //         where: {
+      //           productId_websiteId: {
+      //             productId: productId.productId,
+      //             websiteId: productId.websiteId,
+      //           },
+      //         },
+      //         data: {
+      //           externalId: productId.externalId,
+      //         },
+      //       });
+      //     })
+      //   );
+      // }
+
+      if (productIdsToCreate) {
+        await prisma.productId.createMany({
+          data: productIdsToCreate,
+        });
+      }
+
       const product = await prisma.product.update({
         where: { id },
         data: { name },

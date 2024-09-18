@@ -5,6 +5,7 @@ import logger from "./utils/logger";
 import { prisma } from "./utils/prisma";
 import { shouldSendAlert } from "./utils/shouldSendAlert";
 import { sendEmail } from "./utils/mailer";
+import { fetchCulturaPrice } from "./fetchers/culturaFetcher";
 
 const createPricePointAndCheckAlert = async (
   product: { id: string; name: string },
@@ -13,7 +14,8 @@ const createPricePointAndCheckAlert = async (
   websiteName: string,
   priceType: PriceType,
   baseUrl: string,
-  externalId: string
+  externalId: string,
+  ean?: string
 ) => {
   try {
     const previousPricePoint = await prisma.pricePoint.findFirst({
@@ -44,7 +46,8 @@ const createPricePointAndCheckAlert = async (
       priceType,
       baseUrl,
       websiteName,
-      externalId
+      externalId,
+      ean
     );
   } catch (error) {
     logger.error(`Error in createPricePointAndCheckAlert: ${error}`);
@@ -59,7 +62,8 @@ const checkAlert = async (
   kind: PriceType,
   baseUrl: string,
   websiteName: string,
-  externalId: string
+  externalId: string,
+  ean?: string
 ) => {
   try {
     const trackedProducts = await prisma.trackedProduct.findMany({
@@ -112,6 +116,12 @@ const checkAlert = async (
           const id = `a${externalId.split("-")[0]}`;
           productUrl = `${baseUrl}${id}`;
         }
+
+        if (websiteName === "cultura") {
+          // not using externalId because we need to use ean from the response
+          productUrl = `${baseUrl}a-${ean}.html`;
+        }
+
         await sendEmail({
           to: trackedProduct.user.email,
           subject: `Alerte DealZap: ${product.name} à ${price}€`,
@@ -163,7 +173,11 @@ const fetchPrices = async () => {
         try {
           logger.info(`Fetching price for ${product.name} on ${website.name}`);
           let prices:
-            | { new: number | undefined; used: number | undefined }
+            | {
+                new: number | undefined;
+                used: number | undefined;
+                ean?: string;
+              }
             | undefined = undefined;
 
           switch (website.name) {
@@ -176,6 +190,14 @@ const fetchPrices = async () => {
               break;
             case "rakuten":
               prices = await fetchRakutenPrice({
+                id: website.productExternalId,
+                apiBaseUrl: website.apiBaseUrl,
+                headers: website.headers,
+                parameters: website.parameters!,
+              });
+              break;
+            case "cultura":
+              prices = await fetchCulturaPrice({
                 id: website.productExternalId,
                 apiBaseUrl: website.apiBaseUrl,
                 headers: website.headers,
@@ -203,7 +225,8 @@ const fetchPrices = async () => {
                 website.name,
                 PriceType.NEW,
                 website.baseUrl,
-                website.productExternalId
+                website.productExternalId,
+                prices.ean
               );
             }
 
@@ -222,7 +245,8 @@ const fetchPrices = async () => {
                 website.name,
                 PriceType.USED,
                 website.baseUrl,
-                website.productExternalId
+                website.productExternalId,
+                prices.ean
               );
             }
           }
@@ -246,3 +270,22 @@ const main = async () => {
 };
 
 main();
+
+// const main = async () => {
+//   const resp = await fetcher(
+//     "https://www.cultura.com/magento/graphql",
+//     {
+//       "Content-Type": "application/json",
+//       accept: "application/json",
+//       "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//       "user-agent":
+//         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+//     },
+//     "3982680",
+//     'query={products(filter:{sku:{eq:"ID_TO_REPLACE"}}){items{ean stock_status url_suffix price_range{minimum_price{final_price{value}}}}}}'
+//   );
+
+//   console.log(resp);
+// };
+
+// main();
