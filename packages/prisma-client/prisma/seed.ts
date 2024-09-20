@@ -65,6 +65,19 @@ async function main() {
     },
   });
 
+  await prisma.website.upsert({
+    where: { name: "leclerc" },
+    update: {},
+    create: {
+      name: "leclerc",
+      apiBaseurl:
+        "https://www.e.leclerc/api/rest/live-api/product-details-by-sku/",
+      baseUrl: "https://www.e.leclerc/fp/",
+      isEnabled: true,
+      headers: {},
+    },
+  });
+
   await prisma.alertProvider.upsert({
     where: { name: "email" },
     update: {},

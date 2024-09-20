@@ -6,6 +6,7 @@ import { prisma } from "./utils/prisma";
 import { shouldSendAlert } from "./utils/shouldSendAlert";
 import { sendEmail } from "./utils/mailer";
 import { fetchCulturaPrice } from "./fetchers/culturaFetcher";
+import { fetchLeclercPrice } from "./fetchers/leclercFetcher";
 
 const createPricePointAndCheckAlert = async (
   product: { id: string; name: string },
@@ -204,6 +205,12 @@ const fetchPrices = async () => {
                 parameters: website.parameters!,
               });
               break;
+            case "leclerc":
+              prices = await fetchLeclercPrice({
+                id: website.productExternalId,
+                apiBaseUrl: website.apiBaseUrl,
+              });
+              break;
             default:
               logger.error(`Unsupported website: ${website.name}`);
               break;
@@ -261,11 +268,16 @@ const fetchPrices = async () => {
 };
 
 const main = async () => {
+  const start = performance.now();
   try {
     logger.info("Starting worker");
     await fetchPrices();
   } catch (error) {
     logger.error(`Error in main process: ${error}`);
+  } finally {
+    const end = performance.now();
+
+    logger.info(`Worker finished in ${(end - start) / 1000} seconds`);
   }
 };
 
