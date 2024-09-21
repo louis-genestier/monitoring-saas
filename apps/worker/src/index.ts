@@ -7,6 +7,7 @@ import { shouldSendAlert } from "./utils/shouldSendAlert";
 import { sendEmail } from "./utils/mailer";
 import { fetchCulturaPrice } from "./fetchers/culturaFetcher";
 import { fetchLeclercPrice } from "./fetchers/leclercFetcher";
+import { fetchLdlcPrice } from "./fetchers/ldlcFetcher";
 
 const createPricePointAndCheckAlert = async (
   product: { id: string; name: string },
@@ -123,6 +124,10 @@ const checkAlert = async (
           productUrl = `${baseUrl}a-${ean}.html`;
         }
 
+        if (websiteName === "ldlc") {
+          productUrl = `${baseUrl}${externalId}.html`;
+        }
+
         await sendEmail({
           to: trackedProduct.user.email,
           subject: `Alerte DealZap: ${product.name} à ${price}€`,
@@ -209,6 +214,13 @@ const fetchPrices = async () => {
               prices = await fetchLeclercPrice({
                 id: website.productExternalId,
                 apiBaseUrl: website.apiBaseUrl,
+              });
+              break;
+            case "ldlc":
+              prices = await fetchLdlcPrice({
+                id: website.productExternalId,
+                apiBaseUrl: website.apiBaseUrl,
+                headers: website.headers,
               });
               break;
             default:

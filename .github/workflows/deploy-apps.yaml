@@ -176,6 +176,7 @@ jobs:
           cd packages/prisma-client
           pnpm prisma migrate deploy
           pnpm prisma generate
+          pnpm prisma db seed
       - name: Close SSH tunnel
         if: always()
         run: pkill -f "ssh -fN -L 5432:localhost:5432" || true

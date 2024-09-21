@@ -78,6 +78,25 @@ async function main() {
     },
   });
 
+  await prisma.website.upsert({
+    where: { name: "ldlc" },
+    update: {},
+    create: {
+      name: "ldlc",
+      apiBaseurl: "https://www.ldlc.com/v4/fr-fr/form/search/filter/",
+      baseUrl: "https://www.ldlc.com/fiche/",
+      headers: {
+        accept: "*/*",
+        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+        "cache-control": "no-cache",
+        "content-length": "0",
+        pragma: "no-cache",
+        "x-requested-with": "XMLHttpRequest",
+      },
+      isEnabled: true,
+    },
+  });
+
   await prisma.alertProvider.upsert({
     where: { name: "email" },
     update: {},
