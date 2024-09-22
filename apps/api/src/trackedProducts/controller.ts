@@ -8,7 +8,6 @@ import {
 } from "@/utils/errors";
 import { getPaginationParams } from "@/utils/pagination";
 import { vValidator } from "@hono/valibot-validator";
-import { PriceType } from "@repo/prisma-client";
 import { Hono } from "hono";
 import { object, string, number, boolean, enum as venum } from "valibot";
 
@@ -17,7 +16,6 @@ const trackedProductSchema = object({
   threshold: number(),
   alertProviderId: string(),
   isEnabled: boolean(),
-  priceType: venum(PriceType),
 });
 
 const app = new Hono<Context>();
@@ -88,7 +86,7 @@ const routes = app
     return c.json(trackedProduct);
   })
   .post("/", vValidator("json", trackedProductSchema), async (c) => {
-    const { productId, threshold, alertProviderId, isEnabled, priceType } =
+    const { productId, threshold, alertProviderId, isEnabled } =
       c.req.valid("json");
     const user = c.get("user");
 
@@ -105,7 +103,7 @@ const routes = app
         threshold,
         alertProviderId,
         isEnabled,
-        priceType,
+        priceType: "NEW",
       },
     });
 
@@ -113,7 +111,7 @@ const routes = app
   })
   .put("/:id", vValidator("json", trackedProductSchema), async (c) => {
     const id = c.req.param("id");
-    const { productId, threshold, alertProviderId, isEnabled, priceType } =
+    const { productId, threshold, alertProviderId, isEnabled } =
       c.req.valid("json");
     const user = c.get("user");
 
@@ -144,7 +142,6 @@ const routes = app
         threshold,
         alertProviderId,
         isEnabled,
-        priceType,
       },
     });
 

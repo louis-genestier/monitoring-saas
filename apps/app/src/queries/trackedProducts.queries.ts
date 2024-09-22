@@ -1,13 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { client } from "@repo/front-logic";
-import { TrackedProductWithAllRelations, PriceType } from "@repo/prisma-client";
+import { TrackedProductWithAllRelations } from "@repo/prisma-client";
 
 type TrackedProductInput = {
   productId: string;
   threshold: number;
   alertProviderId: string;
   isEnabled: boolean;
-  priceType: PriceType;
 };
 
 type PaginationParams = {

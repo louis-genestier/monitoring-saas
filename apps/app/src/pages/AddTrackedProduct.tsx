@@ -31,11 +31,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useProducts } from "../queries/products.queries";
 import { OnboardingTooltip } from "../components/OnboardingTooltip";
 
-const PriceType = {
-  NEW: "NEW",
-  USED: "USED",
-};
-
 const schema = z.object({
   productId: z.string().min(1, "Vous devez sélectionner un produit"),
   threshold: z
@@ -46,7 +41,6 @@ const schema = z.object({
     .min(0, "Le seuil de prix doit être positif"),
   alertProviderId: z.string().min(1, "Le type d'alerte est requis"),
   isEnabled: z.boolean(),
-  priceType: z.nativeEnum(PriceType),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -73,7 +67,6 @@ export const AddTrackedProduct = () => {
       threshold: 0,
       alertProviderId: "",
       isEnabled: true,
-      priceType: PriceType.NEW,
     },
   });
 
@@ -84,7 +77,6 @@ export const AddTrackedProduct = () => {
         threshold: data.threshold,
         alertProviderId: data.alertProviderId,
         isEnabled: data.isEnabled,
-        priceType: data.priceType as keyof typeof PriceType,
       },
       {
         onSuccess: () => {
@@ -204,7 +196,7 @@ export const AddTrackedProduct = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="priceType"
                   render={({ field }) => (
@@ -243,7 +235,7 @@ export const AddTrackedProduct = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
                 <FormField
                   control={form.control}
                   name="isEnabled"
