@@ -192,7 +192,6 @@ jobs:
           echo "DATABASE_URL=$DATABASE_URL" > .env
           echo "NODE_ENV=production" >> .env
           echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env
-          echo "PROXY_URL=$PROXY_URL" >> .env
       - name: Prune worker dependencies
         run: |
           cd apps/worker
