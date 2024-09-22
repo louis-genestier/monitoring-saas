@@ -5,9 +5,13 @@ import { Agent } from "https";
 
 const agent = PROXY_URL ? new HttpsProxyAgent(PROXY_URL) : new Agent();
 
-const axiosInstance = axios.create({
+const axiosInstance = axios.create({});
+
+const axiosInstanceWithProxy = axios.create({
   httpsAgent: agent,
   httpAgent: agent,
 });
 
 export default axiosInstance;
+
+export { axiosInstanceWithProxy };

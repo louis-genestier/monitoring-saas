@@ -1,5 +1,5 @@
 import { JsonValue } from "@repo/prisma-client/src/generated/client/runtime/library";
-import axios from "../utils/axios";
+import axios, { axiosInstanceWithProxy } from "../utils/axios";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 
 export const fetcher = async <T>(
@@ -32,6 +32,8 @@ export const fetcher = async <T>(
 
   if (url.includes("ldlc")) {
     response = await axios.post<T>(fullUrl, null, axiosOptions);
+  } else if (url.includes("amazon")) {
+    response = await axiosInstanceWithProxy.get<T>(fullUrl, axiosOptions);
   } else {
     response = await axios.get<T>(fullUrl, axiosOptions);
   }
