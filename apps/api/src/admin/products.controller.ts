@@ -26,29 +26,29 @@ const routes = app
   .get("/", sessionMiddleware, adminMiddleware, async (c) => {
     const { page, limit, skip } = getPaginationParams(c.req);
 
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        skip,
-        take: limit,
-        include: {
-          ProductId: {
-            include: {
-              website: true,
-            },
+    const products = await prisma.product.findMany({
+      // skip,
+      // take: limit,
+      include: {
+        ProductId: {
+          include: {
+            website: true,
           },
         },
-      }),
-      prisma.product.count(),
-    ]);
+      },
+    });
+    // const [products, total] = await Promise.all([
+    //   prisma.product.count(),
+    // ]);
 
     return c.json({
       items: products,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      // pagination: {
+      //   page,
+      //   limit,
+      //   total,
+      //   totalPages: Math.ceil(total / limit),
+      // },
     });
   })
   .get("/:id", sessionMiddleware, adminMiddleware, async (c) => {
