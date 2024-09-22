@@ -10,144 +10,299 @@ import { fetchLeclercPrice } from "./fetchers/leclercFetcher";
 import { fetchLdlcPrice } from "./fetchers/ldlcFetcher";
 import { fetchAmazonPrice } from "./fetchers/amazonFetcher";
 
-const createPricePointAndCheckAlert = async (
-  product: { id: string; name: string },
-  price: number,
-  websiteId: string,
-  websiteName: string,
-  priceType: PriceType,
-  baseUrl: string,
-  externalId: string,
-  ean?: string
-) => {
+const getAlertsToBeSent = async ({
+  productId,
+  price,
+  priceType,
+  newPricePoint,
+  website,
+  product,
+}: {
+  productId: string;
+  price: number;
+  priceType: PriceType;
+  newPricePoint: PricePoint;
+  website: {
+    id: string;
+    name: string;
+    baseUrl: string;
+    externalId: string;
+    ean?: string;
+  };
+  product: {
+    id: string;
+    name: string;
+  };
+}) => {
   try {
-    const previousPricePoint = await prisma.pricePoint.findFirst({
-      where: {
-        productId: product.id,
-        websiteId: websiteId,
-        priceType: priceType,
-      },
-      orderBy: {
-        timestamp: "desc",
-      },
-    });
-    const createdPricePoint = await prisma.pricePoint.create({
-      data: {
-        productId: product.id,
-        price,
-        websiteId,
-        priceType,
-        timestamp: new Date(),
-      },
-    });
-
-    await checkAlert(
-      product,
-      price,
-      previousPricePoint,
-      createdPricePoint,
-      priceType,
-      baseUrl,
-      websiteName,
-      externalId,
-      ean
-    );
-  } catch (error) {
-    logger.error(`Error in createPricePointAndCheckAlert: ${error}`);
-  }
-};
-
-const checkAlert = async (
-  product: { id: string; name: string },
-  price: number,
-  previousPricePoint: PricePoint | null,
-  createdPricePoint: PricePoint,
-  kind: PriceType,
-  baseUrl: string,
-  websiteName: string,
-  externalId: string,
-  ean?: string
-) => {
-  try {
+    let shouldSendAlert = false;
     const trackedProducts = await prisma.trackedProduct.findMany({
       where: {
-        productId: product.id,
-        priceType: kind,
+        productId,
+        priceType,
         isEnabled: true,
         threshold: {
           gt: price,
         },
       },
       include: {
-        Alert: true,
         user: true,
+        Alert: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            pricePoint: true,
+          },
+        },
       },
     });
 
     if (trackedProducts.length === 0) {
       logger.info(
-        `No tracked products found for ${product.name} with price ${price}€`
+        `No tracked products found for product ${productId} with price ${price}€`
       );
       return;
     }
 
     logger.info(
-      `Found ${trackedProducts.length} tracked products for ${product.name} with price ${price}€`
+      `Found ${trackedProducts.length} tracked products for product ${productId} with price ${price}€`
     );
 
+    // this is the price point before the one we just created
+    const previousPricePoint = await prisma.pricePoint.findFirst({
+      where: {
+        productId,
+        websiteId: website.id,
+        priceType,
+      },
+      orderBy: {
+        timestamp: "desc",
+      },
+      skip: 1,
+      take: 1,
+    });
+
     for (const trackedProduct of trackedProducts) {
-      const shouldSendAlertResult = shouldSendAlert(
-        price,
-        previousPricePoint,
-        trackedProduct
+      if (trackedProduct.Alert.length === 0) {
+        logger.info(
+          `No alert found for tracked product ${trackedProduct.id}, should send alert`
+        );
+
+        shouldSendAlert = true;
+      }
+
+      const lastAlertFromWebsite = trackedProduct.Alert.find(
+        (alert) => alert.pricePoint.websiteId === website.id
       );
 
-      if (shouldSendAlertResult) {
+      if (!lastAlertFromWebsite) {
+        logger.info(
+          `No alert found for tracked product ${trackedProduct.id} on website ${website.name}, should send alert`
+        );
+
+        shouldSendAlert = true;
+      }
+
+      if (!previousPricePoint) {
+        logger.info(
+          `No previous price point found for product ${productId}, should send alert`
+        );
+        shouldSendAlert = true;
+      }
+
+      // previous pricepoint is higher than threshold, it should now send an alert since this one is lower
+      if (
+        previousPricePoint &&
+        previousPricePoint.price > trackedProduct.threshold
+      ) {
+        logger.info(
+          `Previous price point is higher than current price, should send alert`
+        );
+        shouldSendAlert = true;
+      }
+
+      if (shouldSendAlert) {
         await prisma.alert.create({
           data: {
             trackedProductId: trackedProduct.id,
             status: AlertStatus.SENT,
-            pricePointId: createdPricePoint.id,
+            pricePointId: newPricePoint.id,
             alertProviderId: trackedProduct.alertProviderId,
           },
         });
 
-        let productUrl = `${baseUrl}${externalId}`;
+        let productUrl = `${website.baseUrl}${website.externalId}`;
 
-        if (websiteName === "fnac") {
+        if (website.name === "fnac") {
           // product for api is 1234-1 but for website is a1234
-          const id = `a${externalId.split("-")[0]}`;
-          productUrl = `${baseUrl}${id}`;
+          const id = `a${website.externalId.split("-")[0]}`;
+          productUrl = `${website.baseUrl}${id}`;
         }
 
-        if (websiteName === "cultura") {
+        if (website.name === "cultura") {
           // not using externalId because we need to use ean from the response
-          productUrl = `${baseUrl}a-${ean}.html`;
+          productUrl = `${website.baseUrl}a-${website.ean}.html`;
         }
 
-        if (websiteName === "ldlc") {
-          productUrl = `${baseUrl}${externalId}.html`;
+        if (website.name === "ldlc") {
+          productUrl = `${website.baseUrl}${website.externalId}.html`;
         }
 
         await sendEmail({
           to: trackedProduct.user.email,
           subject: `Alerte DealZap: ${product.name} à ${price}€`,
-          text: `Bonjour,\n\nLe produit ${product.name} est disponible à ${price}€ sur ${websiteName}, vous pouvez y accéder ici ${productUrl}.`,
+          text: `Bonjour,\n\nLe produit ${product.name} est disponible à ${price}€ sur ${website.name}, vous pouvez y accéder ici ${productUrl}.`,
         });
 
         logger.info(
-          `Sent alert for ${product.name} ${kind === PriceType.NEW ? "(new)" : "(used)"} under ${price}€`
-        );
-      } else {
-        logger.info(
-          `Not sending alert for ${product.name} ${kind === PriceType.NEW ? "(new)" : "(used)"} under ${price}€`
+          `Sent alert for ${product.name} ${priceType === PriceType.NEW ? "(new)" : "(used)"} under ${price}€`
         );
       }
     }
   } catch (error) {
-    logger.error(`Error in checkAlert: ${error}`);
+    logger.error(`Error in getAlertToBeSent: ${error}`);
   }
 };
+
+// const createPricePointAndCheckAlert = async (
+//   product: { id: string; name: string },
+//   price: number,
+//   websiteId: string,
+//   websiteName: string,
+//   priceType: PriceType,
+//   baseUrl: string,
+//   externalId: string,
+//   ean?: string
+// ) => {
+//   try {
+//     const previousPricePoint = await prisma.pricePoint.findFirst({
+//       where: {
+//         productId: product.id,
+//         websiteId: websiteId,
+//         priceType: priceType,
+//       },
+//       orderBy: {
+//         timestamp: "desc",
+//       },
+//     });
+//     const createdPricePoint = await prisma.pricePoint.create({
+//       data: {
+//         productId: product.id,
+//         price,
+//         websiteId,
+//         priceType,
+//         timestamp: new Date(),
+//       },
+//     });
+
+//     await checkAlert(
+//       product,
+//       price,
+//       previousPricePoint,
+//       createdPricePoint,
+//       priceType,
+//       baseUrl,
+//       websiteName,
+//       externalId,
+//       ean
+//     );
+//   } catch (error) {
+//     logger.error(`Error in createPricePointAndCheckAlert: ${error}`);
+//   }
+// };
+
+// const checkAlert = async (
+//   product: { id: string; name: string },
+//   price: number,
+//   previousPricePoint: PricePoint | null,
+//   createdPricePoint: PricePoint,
+//   kind: PriceType,
+//   baseUrl: string,
+//   websiteName: string,
+//   externalId: string,
+//   ean?: string
+// ) => {
+//   try {
+//     const trackedProducts = await prisma.trackedProduct.findMany({
+//       where: {
+//         productId: product.id,
+//         priceType: kind,
+//         isEnabled: true,
+//         threshold: {
+//           gt: price,
+//         },
+//       },
+//       include: {
+//         Alert: true,
+//         user: true,
+//       },
+//     });
+
+//     if (trackedProducts.length === 0) {
+//       logger.info(
+//         `No tracked products found for ${product.name} with price ${price}€`
+//       );
+//       return;
+//     }
+
+//     logger.info(
+//       `Found ${trackedProducts.length} tracked products for ${product.name} with price ${price}€`
+//     );
+
+//     for (const trackedProduct of trackedProducts) {
+//       const shouldSendAlertResult = shouldSendAlert(
+//         price,
+//         previousPricePoint,
+//         trackedProduct
+//       );
+
+//       if (shouldSendAlertResult) {
+//         await prisma.alert.create({
+//           data: {
+//             trackedProductId: trackedProduct.id,
+//             status: AlertStatus.SENT,
+//             pricePointId: createdPricePoint.id,
+//             alertProviderId: trackedProduct.alertProviderId,
+//           },
+//         });
+
+//         let productUrl = `${baseUrl}${externalId}`;
+
+//         if (websiteName === "fnac") {
+//           // product for api is 1234-1 but for website is a1234
+//           const id = `a${externalId.split("-")[0]}`;
+//           productUrl = `${baseUrl}${id}`;
+//         }
+
+//         if (websiteName === "cultura") {
+//           // not using externalId because we need to use ean from the response
+//           productUrl = `${baseUrl}a-${ean}.html`;
+//         }
+
+//         if (websiteName === "ldlc") {
+//           productUrl = `${baseUrl}${externalId}.html`;
+//         }
+
+//         await sendEmail({
+//           to: trackedProduct.user.email,
+//           subject: `Alerte DealZap: ${product.name} à ${price}€`,
+//           text: `Bonjour,\n\nLe produit ${product.name} est disponible à ${price}€ sur ${websiteName}, vous pouvez y accéder ici ${productUrl}.`,
+//         });
+
+//         logger.info(
+//           `Sent alert for ${product.name} ${kind === PriceType.NEW ? "(new)" : "(used)"} under ${price}€`
+//         );
+//       } else {
+//         logger.info(
+//           `Not sending alert for ${product.name} ${kind === PriceType.NEW ? "(new)" : "(used)"} under ${price}€`
+//         );
+//       }
+//     }
+//   } catch (error) {
+//     logger.error(`Error in checkAlert: ${error}`);
+//   }
+// };
 
 const fetchPrices = async () => {
   try {
@@ -179,13 +334,15 @@ const fetchPrices = async () => {
       for (const website of websites) {
         try {
           logger.info(`Fetching price for ${product.name} on ${website.name}`);
-          let prices:
-            | {
-                new: number | undefined;
-                used: number | undefined;
-                ean?: string;
-              }
-            | undefined = undefined;
+          let prices: {
+            new: number | undefined;
+            used: number | undefined;
+            ean?: string;
+          } = {
+            new: undefined,
+            used: undefined,
+          };
+          // | undefined = undefined;
 
           switch (website.name) {
             case "fnac":
@@ -237,47 +394,86 @@ const fetchPrices = async () => {
               break;
           }
 
-          if (prices?.new || prices?.used) {
-            if (prices.new) {
-              logger.info({
-                website: website.name,
-                productName: product.name,
+          if (prices.new) {
+            logger.info({
+              website: website.name,
+              productName: product.name,
+              price: prices.new,
+              priceType: PriceType.NEW,
+            });
+
+            const newPricePoint = await prisma.pricePoint.create({
+              data: {
                 price: prices.new,
+                productId: product.id,
+                websiteId: website.websiteId,
                 priceType: PriceType.NEW,
-              });
+              },
+            });
 
-              await createPricePointAndCheckAlert(
-                product,
-                prices.new,
-                website.websiteId,
-                website.name,
-                PriceType.NEW,
-                website.baseUrl,
-                website.productExternalId,
-                prices.ean
-              );
-            }
+            await getAlertsToBeSent({
+              productId: product.id,
+              price: prices.new,
+              priceType: PriceType.NEW,
+              website: {
+                id: website.websiteId,
+                name: website.name,
+                baseUrl: website.baseUrl,
+                externalId: website.productExternalId,
+                ean: prices.ean,
+              },
+              product: {
+                id: product.id,
+                name: product.name,
+              },
+              newPricePoint,
+            });
 
-            if (prices.used) {
-              logger.info({
-                website: website.name,
-                productName: product.name,
-                price: prices.used,
-                priceType: PriceType.USED,
-              });
-
-              await createPricePointAndCheckAlert(
-                product,
-                prices.used,
-                website.websiteId,
-                website.name,
-                PriceType.USED,
-                website.baseUrl,
-                website.productExternalId,
-                prices.ean
-              );
-            }
+            // await createPricePointAndCheckAlert(
+            //   product,
+            //   prices.new,
+            //   website.websiteId,
+            //   website.name,
+            //   PriceType.NEW,
+            //   website.baseUrl,
+            //   website.productExternalId,
+            //   prices.ean
+            // );
           }
+          // if (prices?.new || prices?.used) {
+
+          //     await createPricePointAndCheckAlert(
+          //       product,
+          //       prices.new,
+          //       website.websiteId,
+          //       website.name,
+          //       PriceType.NEW,
+          //       website.baseUrl,
+          //       website.productExternalId,
+          //       prices.ean
+          //     );
+          //   }
+
+          //   if (prices.used) {
+          //     logger.info({
+          //       website: website.name,
+          //       productName: product.name,
+          //       price: prices.used,
+          //       priceType: PriceType.USED,
+          //     });
+
+          //     await createPricePointAndCheckAlert(
+          //       product,
+          //       prices.used,
+          //       website.websiteId,
+          //       website.name,
+          //       PriceType.USED,
+          //       website.baseUrl,
+          //       website.productExternalId,
+          //       prices.ean
+          //     );
+          //   }
+          // }
         } catch (error) {
           logger.error(`Error processing website ${website.name}: ${error}`);
         }
@@ -303,22 +499,3 @@ const main = async () => {
 };
 
 main();
-
-// const main = async () => {
-//   const resp = await fetcher(
-//     "https://www.cultura.com/magento/graphql",
-//     {
-//       "Content-Type": "application/json",
-//       accept: "application/json",
-//       "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-//       "user-agent":
-//         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-//     },
-//     "3982680",
-//     'query={products(filter:{sku:{eq:"ID_TO_REPLACE"}}){items{ean stock_status url_suffix price_range{minimum_price{final_price{value}}}}}}'
-//   );
-
-//   console.log(resp);
-// };
-
-// main();

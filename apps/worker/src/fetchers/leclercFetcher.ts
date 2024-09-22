@@ -227,12 +227,14 @@ export const fetchLeclercPrice = async ({
 
   if (newOffers.length > 0) {
     bestNewPrice =
-      Math.min(...newOffers.map((offer) => offer.basePrice.price.price)) / 100;
+      Math.min(...newOffers.map((offer) => offer.basePrice.totalPrice.price)) /
+      100;
   }
 
   if (usedOffers.length > 0) {
     bestUsedPrice =
-      Math.min(...usedOffers.map((offer) => offer.basePrice.price.price)) / 100;
+      Math.min(...usedOffers.map((offer) => offer.basePrice.totalPrice.price)) /
+      100;
   }
 
   return {
