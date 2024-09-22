@@ -44,7 +44,8 @@ export const fetchLdlcPrice = async ({
   const price = $(".pdt-item .basket .price .price")
     .text()
     .trim()
-    .replace("€", ".");
+    .replace("€", ".")
+    .replace(/[^0-9.,]/g, "");
 
   const parsed = parseFloat(price);
 
