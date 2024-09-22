@@ -34,7 +34,16 @@ export const ProductPriceChart = ({ data }) => {
     ];
   }, [data, priceType]);
 
-  const colors = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300"];
+  const colors = [
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#ff7300",
+    "#ff3860",
+    "#00c49f",
+    "#0088fe",
+    "#ffbb28",
+  ];
 
   const formatXAxis = (timestamp) => {
     return new Date(timestamp).toLocaleString();
@@ -79,7 +88,18 @@ export const ProductPriceChart = ({ data }) => {
             labelFormatter={(label) => new Date(label).toLocaleString()}
             formatter={(value, name) => [`€${value.toFixed(2)}`, name]}
           />
-          <Legend />
+          <Legend
+            formatter={(value) => (
+              <span>
+                {value} - Last price:{" "}
+                {
+                  data.find((pricepoint) => pricepoint.website.name === value)
+                    .price
+                }
+                €
+              </span>
+            )}
+          />
           {websites.map((website, index) => (
             <Line
               key={website}
