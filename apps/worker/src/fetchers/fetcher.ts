@@ -24,6 +24,10 @@ export const fetcher = async <T>(
     axiosOptions.data = {};
   }
 
+  if (url.includes("amazon")) {
+    fullUrl = `${url}?${parameters}`;
+  }
+
   let response: AxiosResponse<T>;
 
   if (url.includes("ldlc")) {

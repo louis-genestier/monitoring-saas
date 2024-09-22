@@ -97,6 +97,23 @@ async function main() {
     },
   });
 
+  await prisma.website.upsert({
+    where: { name: "amazon" },
+    update: {},
+    create: {
+      name: "amazon",
+      apiBaseurl: "https://www.amazon.fr/gp/product/ajax",
+      baseUrl: "https://www.amazon.fr/dp/",
+      parameters:
+        "asinList=ID_TO_REPLACE&experienceId=twisterDimensionSlotsDefault&asin=ID_TO_REPLACE&deviceType=mobileApp&showFancyPrice=false",
+      isEnabled: true,
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+      },
+    },
+  });
+
   await prisma.alertProvider.upsert({
     where: { name: "email" },
     update: {},

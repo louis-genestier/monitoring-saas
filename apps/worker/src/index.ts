@@ -8,6 +8,7 @@ import { sendEmail } from "./utils/mailer";
 import { fetchCulturaPrice } from "./fetchers/culturaFetcher";
 import { fetchLeclercPrice } from "./fetchers/leclercFetcher";
 import { fetchLdlcPrice } from "./fetchers/ldlcFetcher";
+import { fetchAmazonPrice } from "./fetchers/amazonFetcher";
 
 const createPricePointAndCheckAlert = async (
   product: { id: string; name: string },
@@ -220,6 +221,14 @@ const fetchPrices = async () => {
               prices = await fetchLdlcPrice({
                 id: website.productExternalId,
                 apiBaseUrl: website.apiBaseUrl,
+                headers: website.headers,
+              });
+              break;
+            case "amazon":
+              prices = await fetchAmazonPrice({
+                id: website.productExternalId,
+                apiBaseUrl: website.apiBaseUrl,
+                parameters: website.parameters!,
                 headers: website.headers,
               });
               break;
