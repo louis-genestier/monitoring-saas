@@ -324,7 +324,9 @@ const fetchPricesForWebsites = async (
     parameters: productId.website.parameters,
     websiteId: productId.websiteId,
     baseUrl: productId.website.baseUrl,
-  }));
+    enabled: productId.website.isEnabled,
+  })).filter((website) => website.enabled);
+
   logger.info(`${websites.length} websites found for ${product.name}`);
 
   for (const website of websites) {

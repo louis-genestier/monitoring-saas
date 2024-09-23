@@ -46,13 +46,6 @@ export const fetcher = async <T>(
       ),
       headers: { ...axiosOptions.headers, "User-Agent": randomUserAgent() },
     });
-  } else if (url.includes("rakuten")) {
-    response = await axios.get<T>(fullUrl, {
-      httpsAgent: new HttpsProxyAgent(
-        `http://${proxy?.username}:${proxy?.password}@${proxy?.ip}`
-      ),
-      headers: { ...axiosOptions.headers },
-    });
   } else {
     response = await axios.get<T>(fullUrl, axiosOptions);
   }
