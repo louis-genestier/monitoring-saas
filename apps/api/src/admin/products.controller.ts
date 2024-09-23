@@ -190,7 +190,12 @@ const routes = app
     const id = c.req.param("id");
 
     const pricePoints = await prisma.pricePoint.findMany({
-      where: { productId: id },
+      where: {
+        productId: id,
+        timestamp: {
+          gte: new Date(new Date().setDate(new Date().getDate() - 1)),
+        },
+      },
       orderBy: {
         timestamp: "desc",
       },
