@@ -10,3 +10,7 @@ export type TrackedProductWithAlert = Prisma.TrackedProductGetPayload<{
 export type TrackedProductWithAllRelations = Prisma.TrackedProductGetPayload<{
   include: { product: true; Alert: true; alertProvider: true };
 }>;
+
+export type ProductWithProductIdsAndWebsite = Prisma.ProductGetPayload<{
+  include: { ProductId: { include: { website: true } } };
+}>;

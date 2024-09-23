@@ -1,14 +1,23 @@
-import { AlertStatus, PricePoint, PriceType } from "@repo/prisma-client";
+import {
+  AlertStatus,
+  PricePoint,
+  PriceType,
+  Product,
+  ProductId,
+  ProductWithProductIdsAndWebsite,
+  TrackedProductWithAllRelations,
+} from "@repo/prisma-client";
 import { fetchFnacPrice } from "./fetchers/fnacFetcher";
 import { fetchRakutenPrice } from "./fetchers/rakutenFetcher";
 import logger from "./utils/logger";
 import { prisma } from "./utils/prisma";
-import { shouldSendAlert } from "./utils/shouldSendAlert";
 import { sendEmail } from "./utils/mailer";
 import { fetchCulturaPrice } from "./fetchers/culturaFetcher";
 import { fetchLeclercPrice } from "./fetchers/leclercFetcher";
 import { fetchLdlcPrice } from "./fetchers/ldlcFetcher";
 import { fetchAmazonPrice } from "./fetchers/amazonFetcher";
+
+const BATCH_SIZE = 10;
 
 const getAlertsToBeSent = async ({
   productId,
@@ -304,6 +313,169 @@ const getAlertsToBeSent = async ({
 //   }
 // };
 
+const fetchPricesForWebsites = async (
+  product: ProductWithProductIdsAndWebsite
+) => {
+  const websites = product.ProductId.map((productId) => ({
+    name: productId.website.name,
+    apiBaseUrl: productId.website.apiBaseurl,
+    productExternalId: productId.externalId,
+    headers: productId.website.headers,
+    parameters: productId.website.parameters,
+    websiteId: productId.websiteId,
+    baseUrl: productId.website.baseUrl,
+  }));
+  logger.info(`${websites.length} websites found for ${product.name}`);
+
+  for (const website of websites) {
+    try {
+      logger.info(`Fetching price for ${product.name} on ${website.name}`);
+      let prices: {
+        new: number | undefined;
+        used: number | undefined;
+        ean?: string;
+      } = {
+        new: undefined,
+        used: undefined,
+      };
+      // | undefined = undefined;
+
+      switch (website.name) {
+        case "fnac":
+          prices = await fetchFnacPrice({
+            id: website.productExternalId,
+            apiBaseUrl: website.apiBaseUrl,
+            headers: website.headers,
+          });
+          break;
+        case "rakuten":
+          prices = await fetchRakutenPrice({
+            id: website.productExternalId,
+            apiBaseUrl: website.apiBaseUrl,
+            headers: website.headers,
+            parameters: website.parameters!,
+          });
+          break;
+        case "cultura":
+          prices = await fetchCulturaPrice({
+            id: website.productExternalId,
+            apiBaseUrl: website.apiBaseUrl,
+            headers: website.headers,
+            parameters: website.parameters!,
+          });
+          break;
+        case "leclerc":
+          prices = await fetchLeclercPrice({
+            id: website.productExternalId,
+            apiBaseUrl: website.apiBaseUrl,
+          });
+          break;
+        case "ldlc":
+          prices = await fetchLdlcPrice({
+            id: website.productExternalId,
+            apiBaseUrl: website.apiBaseUrl,
+            headers: website.headers,
+          });
+          break;
+        case "amazon":
+          prices = await fetchAmazonPrice({
+            id: website.productExternalId,
+            apiBaseUrl: website.apiBaseUrl,
+            parameters: website.parameters!,
+            headers: website.headers,
+          });
+          break;
+        default:
+          logger.error(`Unsupported website: ${website.name}`);
+          break;
+      }
+
+      if (prices.new) {
+        logger.info({
+          website: website.name,
+          productName: product.name,
+          price: prices.new,
+          priceType: PriceType.NEW,
+        });
+
+        const newPricePoint = await prisma.pricePoint.create({
+          data: {
+            price: prices.new,
+            productId: product.id,
+            websiteId: website.websiteId,
+            priceType: PriceType.NEW,
+          },
+        });
+
+        await getAlertsToBeSent({
+          productId: product.id,
+          price: prices.new,
+          priceType: PriceType.NEW,
+          website: {
+            id: website.websiteId,
+            name: website.name,
+            baseUrl: website.baseUrl,
+            externalId: website.productExternalId,
+            ean: prices.ean,
+          },
+          product: {
+            id: product.id,
+            name: product.name,
+          },
+          newPricePoint,
+        });
+
+        // await createPricePointAndCheckAlert(
+        //   product,
+        //   prices.new,
+        //   website.websiteId,
+        //   website.name,
+        //   PriceType.NEW,
+        //   website.baseUrl,
+        //   website.productExternalId,
+        //   prices.ean
+        // );
+      }
+      // if (prices?.new || prices?.used) {
+
+      //     await createPricePointAndCheckAlert(
+      //       product,
+      //       prices.new,
+      //       website.websiteId,
+      //       website.name,
+      //       PriceType.NEW,
+      //       website.baseUrl,
+      //       website.productExternalId,
+      //       prices.ean
+      //     );
+      //   }
+
+      //   if (prices.used) {
+      //     logger.info({
+      //       website: website.name,
+      //       productName: product.name,
+      //       price: prices.used,
+      //       priceType: PriceType.USED,
+      //     });
+
+      //     await createPricePointAndCheckAlert(
+      //       product,
+      //       prices.used,
+      //       website.websiteId,
+      //       website.name,
+      //       PriceType.USED,
+      //       website.baseUrl,
+      //       website.productExternalId,
+      //       prices.ean
+      //     );
+      //   }
+      // }
+    } catch (error) {
+      logger.error(`Error processing website ${website.name}: ${error}`);
+    }
+  }
+};
+
 const fetchPrices = async () => {
   try {
     // TODO: first only get products that are tracked then after get other products
@@ -319,165 +491,16 @@ const fetchPrices = async () => {
 
     logger.info(`Found ${products.length} products`);
 
-    for (const product of products) {
-      const websites = product.ProductId.map((productId) => ({
-        name: productId.website.name,
-        apiBaseUrl: productId.website.apiBaseurl,
-        productExternalId: productId.externalId,
-        headers: productId.website.headers,
-        parameters: productId.website.parameters,
-        websiteId: productId.websiteId,
-        baseUrl: productId.website.baseUrl,
-      }));
-      logger.info(`${websites.length} websites found for ${product.name}`);
+    logger.info(
+      `Estimated batches: ${Math.ceil(products.length / BATCH_SIZE)}`
+    );
 
-      for (const website of websites) {
-        try {
-          logger.info(`Fetching price for ${product.name} on ${website.name}`);
-          let prices: {
-            new: number | undefined;
-            used: number | undefined;
-            ean?: string;
-          } = {
-            new: undefined,
-            used: undefined,
-          };
-          // | undefined = undefined;
+    for (let i = 0; i < products.length; i += BATCH_SIZE) {
+      const batch = products.slice(i, i + BATCH_SIZE);
 
-          switch (website.name) {
-            case "fnac":
-              prices = await fetchFnacPrice({
-                id: website.productExternalId,
-                apiBaseUrl: website.apiBaseUrl,
-                headers: website.headers,
-              });
-              break;
-            case "rakuten":
-              prices = await fetchRakutenPrice({
-                id: website.productExternalId,
-                apiBaseUrl: website.apiBaseUrl,
-                headers: website.headers,
-                parameters: website.parameters!,
-              });
-              break;
-            case "cultura":
-              prices = await fetchCulturaPrice({
-                id: website.productExternalId,
-                apiBaseUrl: website.apiBaseUrl,
-                headers: website.headers,
-                parameters: website.parameters!,
-              });
-              break;
-            case "leclerc":
-              prices = await fetchLeclercPrice({
-                id: website.productExternalId,
-                apiBaseUrl: website.apiBaseUrl,
-              });
-              break;
-            case "ldlc":
-              prices = await fetchLdlcPrice({
-                id: website.productExternalId,
-                apiBaseUrl: website.apiBaseUrl,
-                headers: website.headers,
-              });
-              break;
-            case "amazon":
-              prices = await fetchAmazonPrice({
-                id: website.productExternalId,
-                apiBaseUrl: website.apiBaseUrl,
-                parameters: website.parameters!,
-                headers: website.headers,
-              });
-              break;
-            default:
-              logger.error(`Unsupported website: ${website.name}`);
-              break;
-          }
+      logger.info(`Processing batch ${i / BATCH_SIZE + 1}`);
 
-          if (prices.new) {
-            logger.info({
-              website: website.name,
-              productName: product.name,
-              price: prices.new,
-              priceType: PriceType.NEW,
-            });
-
-            const newPricePoint = await prisma.pricePoint.create({
-              data: {
-                price: prices.new,
-                productId: product.id,
-                websiteId: website.websiteId,
-                priceType: PriceType.NEW,
-              },
-            });
-
-            await getAlertsToBeSent({
-              productId: product.id,
-              price: prices.new,
-              priceType: PriceType.NEW,
-              website: {
-                id: website.websiteId,
-                name: website.name,
-                baseUrl: website.baseUrl,
-                externalId: website.productExternalId,
-                ean: prices.ean,
-              },
-              product: {
-                id: product.id,
-                name: product.name,
-              },
-              newPricePoint,
-            });
-
-            // await createPricePointAndCheckAlert(
-            //   product,
-            //   prices.new,
-            //   website.websiteId,
-            //   website.name,
-            //   PriceType.NEW,
-            //   website.baseUrl,
-            //   website.productExternalId,
-            //   prices.ean
-            // );
-          }
-          // if (prices?.new || prices?.used) {
-
-          //     await createPricePointAndCheckAlert(
-          //       product,
-          //       prices.new,
-          //       website.websiteId,
-          //       website.name,
-          //       PriceType.NEW,
-          //       website.baseUrl,
-          //       website.productExternalId,
-          //       prices.ean
-          //     );
-          //   }
-
-          //   if (prices.used) {
-          //     logger.info({
-          //       website: website.name,
-          //       productName: product.name,
-          //       price: prices.used,
-          //       priceType: PriceType.USED,
-          //     });
-
-          //     await createPricePointAndCheckAlert(
-          //       product,
-          //       prices.used,
-          //       website.websiteId,
-          //       website.name,
-          //       PriceType.USED,
-          //       website.baseUrl,
-          //       website.productExternalId,
-          //       prices.ean
-          //     );
-          //   }
-          // }
-        } catch (error) {
-          logger.error(`Error processing website ${website.name}: ${error}`);
-        }
-      }
+      await Promise.all(batch.map(fetchPricesForWebsites));
     }
   } catch (error) {
     logger.error(`Error in fetchPrices: ${error}`);
