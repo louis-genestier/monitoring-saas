@@ -5,6 +5,7 @@ import { Context } from "@/types/honoContext";
 import { getPaginationParams } from "@/utils/pagination";
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
+import { StatusCode } from "hono/utils/http-status";
 import { boolean, object, optional, pipe, string, url } from "valibot";
 
 const websiteSchema = object({
@@ -140,6 +141,14 @@ const routes = app
           headers: website?.headers as HeadersInit,
         }
       );
+
+      if (!response.ok) {
+        return c.json(
+          { error: "Failed to fetch product" },
+          response.status as StatusCode
+        );
+      }
+
       const data = await response.json();
       return c.json({ data });
     } catch (error) {
