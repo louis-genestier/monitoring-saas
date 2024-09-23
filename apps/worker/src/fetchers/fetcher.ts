@@ -2,6 +2,7 @@ import { JsonValue } from "@repo/prisma-client/src/generated/client/runtime/libr
 import axios, { axiosInstanceWithProxy } from "../utils/axios";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import { randomUserAgent } from "../utils/randomUserAgent";
 
 export const fetcher = async <T>(
   url: string,
@@ -43,7 +44,7 @@ export const fetcher = async <T>(
       httpsAgent: new HttpsProxyAgent(
         `http://${proxy?.username}:${proxy?.password}@${proxy?.ip}`
       ),
-      headers: axiosOptions.headers,
+      headers: { ...axiosOptions.headers, "User-Agent": randomUserAgent() },
     });
   } else {
     response = await axios.get<T>(fullUrl, axiosOptions);
