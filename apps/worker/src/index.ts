@@ -473,7 +473,9 @@ const fetchPricesForWebsites = async (
       //   }
       // }
     } catch (error) {
-      logger.error(`Error processing website ${website.name}: ${error}`);
+      logger.error(
+        `Error processing website ${website.name} for product ${product.name}: ${error}`
+      );
     }
   }
 };
