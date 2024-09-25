@@ -6,6 +6,7 @@ import {
   ProductId,
   ProductWithProductIdsAndWebsite,
   TrackedProductWithAllRelations,
+  Website,
 } from "@repo/prisma-client";
 import { fetchFnacPrice } from "./fetchers/fnacFetcher";
 import { fetchRakutenPrice } from "./fetchers/rakutenFetcher";
@@ -16,6 +17,32 @@ import { fetchCulturaPrice } from "./fetchers/culturaFetcher";
 import { fetchLeclercPrice } from "./fetchers/leclercFetcher";
 import { fetchLdlcPrice } from "./fetchers/ldlcFetcher";
 import { fetchAmazonPrice } from "./fetchers/amazonFetcher";
+import { isAxiosError } from "axios";
+
+async function retryOperation<T>(
+  operation: () => Promise<T>,
+  shouldRetry: (error: any) => boolean,
+  maxRetries: number = 3,
+  delay: number = 1000
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (attempt === maxRetries || !shouldRetry(error)) {
+        logger.error(
+          `Operation failed after ${attempt} attempt(s). Last error: ${error}`
+        );
+        throw error;
+      }
+      logger.warn(
+        `Attempt ${attempt} failed: ${error}. Retrying in ${delay}ms...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw new Error("This should never happen due to the throw in the for loop");
+}
 
 const BATCH_SIZE = 10;
 
@@ -332,64 +359,90 @@ const fetchPricesForWebsites = async (
   for (const website of websites) {
     try {
       logger.info(`Fetching price for ${product.name} on ${website.name}`);
-      let prices: {
-        new: number | undefined;
-        used: number | undefined;
-        ean?: string;
-      } = {
-        new: undefined,
-        used: undefined,
-      };
+      // let prices: {
+      //   new: number | undefined;
+      //   used: number | undefined;
+      //   ean?: string;
+      // } = {
+      //   new: undefined,
+      //   used: undefined,
+      // };
       // | undefined = undefined;
 
-      switch (website.name) {
-        case "fnac":
-          prices = await fetchFnacPrice({
-            id: website.productExternalId,
-            apiBaseUrl: website.apiBaseUrl,
-            headers: website.headers,
-          });
-          break;
-        case "rakuten":
-          prices = await fetchRakutenPrice({
-            id: website.productExternalId,
-            apiBaseUrl: website.apiBaseUrl,
-            headers: website.headers,
-            parameters: website.parameters!,
-          });
-          break;
-        case "cultura":
-          prices = await fetchCulturaPrice({
-            id: website.productExternalId,
-            apiBaseUrl: website.apiBaseUrl,
-            headers: website.headers,
-            parameters: website.parameters!,
-          });
-          break;
-        case "leclerc":
-          prices = await fetchLeclercPrice({
-            id: website.productExternalId,
-            apiBaseUrl: website.apiBaseUrl,
-          });
-          break;
-        case "ldlc":
-          prices = await fetchLdlcPrice({
-            id: website.productExternalId,
-            apiBaseUrl: website.apiBaseUrl,
-            headers: website.headers,
-          });
-          break;
-        case "amazon":
-          prices = await fetchAmazonPrice({
-            id: website.productExternalId,
-            apiBaseUrl: website.apiBaseUrl,
-            parameters: website.parameters!,
-            headers: website.headers,
-          });
-          break;
-        default:
-          logger.error(`Unsupported website: ${website.name}`);
-          break;
+      const fetchPrice = async () => {
+        switch (website.name) {
+          case "fnac":
+            return await fetchFnacPrice({
+              id: website.productExternalId,
+              apiBaseUrl: website.apiBaseUrl,
+              headers: website.headers,
+            });
+            break;
+          case "rakuten":
+            return await fetchRakutenPrice({
+              id: website.productExternalId,
+              apiBaseUrl: website.apiBaseUrl,
+              headers: website.headers,
+              parameters: website.parameters!,
+            });
+            break;
+          case "cultura":
+            return await fetchCulturaPrice({
+              id: website.productExternalId,
+              apiBaseUrl: website.apiBaseUrl,
+              headers: website.headers,
+              parameters: website.parameters!,
+            });
+            break;
+          case "leclerc":
+            return await fetchLeclercPrice({
+              id: website.productExternalId,
+              apiBaseUrl: website.apiBaseUrl,
+            });
+            break;
+          case "ldlc":
+            return await fetchLdlcPrice({
+              id: website.productExternalId,
+              apiBaseUrl: website.apiBaseUrl,
+              headers: website.headers,
+            });
+            break;
+          case "amazon":
+            return await fetchAmazonPrice({
+              id: website.productExternalId,
+              apiBaseUrl: website.apiBaseUrl,
+              parameters: website.parameters!,
+              headers: website.headers,
+            });
+            break;
+          default:
+            logger.error(`Unsupported website: ${website.name}`);
+            break;
+        }
+      };
+
+      const shouldRetry = (error: any) => {
+        if (isAxiosError(error)) {
+          if (error.response?.status === 404) {
+            logger.info(
+              `Not retrying for ${error.response.status} error on ${website.name} for ${product.name}`
+            );
+            return false;
+          }
+          // Retry for network errors or 5xx server errors
+          if (!error.response || error.response.status >= 500) {
+            return true;
+          }
+        }
+        // For non-Axios errors, you might want to retry based on your specific error types
+        return true;
+      };
+
+      const prices = await retryOperation(fetchPrice, shouldRetry);
+
+      if (!prices) {
+        logger.error(`No prices found for ${product.name} on ${website.name}`);
+        return;
       }
 
       if (prices.new) {

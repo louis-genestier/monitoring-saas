@@ -195,6 +195,7 @@ jobs:
           echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env
           echo "PROXY_PASSWORD=$PROXY_PASSWORD" >> .env
           echo "PROXY_URL=$PROXY_URL" >> .env
+          echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> .env
       - name: Prune worker dependencies
         run: |
           cd apps/worker
