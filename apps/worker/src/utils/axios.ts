@@ -19,16 +19,20 @@ const agentDatacenters = PROXY_URL_DATACENTERS
       rejectUnauthorized: false,
     });
 
-const axiosInstance = axios.create({});
+const axiosInstance = axios.create({
+  timeout: 5000,
+});
 
 const axiosInstanceWithResidentialProxy = axios.create({
   httpsAgent: agentResidentials,
   httpAgent: agentResidentials,
+  timeout: 5000,
 });
 
 const axiosInstanceWithDatacenterProxy = axios.create({
   httpsAgent: agentDatacenters,
   httpAgent: agentDatacenters,
+  timeout: 5000,
 });
 
 export default axiosInstance;
