@@ -36,7 +36,7 @@ export const fetcher = async <T>(
 
   if (url.includes("ldlc")) {
     response = await axios.post<T>(fullUrl, null, axiosOptions);
-  } else if (url.includes("amazon")) {
+  } else if (url.includes("amazon") || url.includes("cultura")) {
     response = await axiosInstanceWithDatacenterProxy.get<T>(fullUrl, {
       headers: { ...axiosOptions.headers, "User-Agent": randomUserAgent() },
     });
