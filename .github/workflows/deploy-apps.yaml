@@ -188,13 +188,15 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           PROXY_PASSWORD: ${{ secrets.PROXY_PASSWORD }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
+          PROXY_URL_DATACENTERS: ${{ secrets.PROXY_URL_DATACENTERS }}
         run: |
           cd apps/worker
           echo "DATABASE_URL=$DATABASE_URL" > .env
           echo "NODE_ENV=production" >> .env
           echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env
           echo "PROXY_PASSWORD=$PROXY_PASSWORD" >> .env
-          echo "PROXY_URL=$PROXY_URL" >> .env
+          echo "PROXY_URL_RESIDENTIALS=$PROXY_URL" >> .env
+          echo "PROXY_URL_DATACENTERS=$PROXY_URL_DATACENTERS" >> .env
           echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> .env
       - name: Prune worker dependencies
         run: |

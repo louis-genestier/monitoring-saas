@@ -1,10 +1,18 @@
 import axios from "axios";
-import { PROXY_URL } from "./env";
+import { PROXY_URL_RESIDENTIALS, PROXY_URL_DATACENTERS } from "./env";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { Agent } from "https";
 
-const agent = PROXY_URL
-  ? new HttpsProxyAgent(PROXY_URL, {
+const agentResidentials = PROXY_URL_RESIDENTIALS
+  ? new HttpsProxyAgent(PROXY_URL_RESIDENTIALS, {
+      rejectUnauthorized: false,
+    })
+  : new Agent({
+      rejectUnauthorized: false,
+    });
+
+const agentDatacenters = PROXY_URL_DATACENTERS
+  ? new HttpsProxyAgent(PROXY_URL_DATACENTERS, {
       rejectUnauthorized: false,
     })
   : new Agent({
@@ -13,11 +21,16 @@ const agent = PROXY_URL
 
 const axiosInstance = axios.create({});
 
-const axiosInstanceWithProxy = axios.create({
-  httpsAgent: agent,
-  httpAgent: agent,
+const axiosInstanceWithResidentialProxy = axios.create({
+  httpsAgent: agentResidentials,
+  httpAgent: agentResidentials,
+});
+
+const axiosInstanceWithDatacenterProxy = axios.create({
+  httpsAgent: agentDatacenters,
+  httpAgent: agentDatacenters,
 });
 
 export default axiosInstance;
 
-export { axiosInstanceWithProxy };
+export { axiosInstanceWithResidentialProxy, axiosInstanceWithDatacenterProxy };
