@@ -23,7 +23,7 @@ async function retryOperation<T>(
   operation: () => Promise<T>,
   shouldRetry: (error: any) => boolean,
   maxRetries: number = 3,
-  delay: number = 1000
+  delay: number = 0
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
