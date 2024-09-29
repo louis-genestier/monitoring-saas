@@ -8,6 +8,7 @@ type ItemResponse = {
         ean: string;
         stock_status: string;
         url_suffix: string;
+        url_key: string;
         price_range: {
           minimum_price: {
             final_price: {
@@ -37,6 +38,6 @@ export const fetchCulturaPrice = async ({
     new: item.data.products.items[0].price_range.minimum_price.final_price
       .value,
     used: undefined,
-    ean: item.data.products.items[0].ean,
+    urlKey: item.data.products.items[0].url_key,
   };
 };

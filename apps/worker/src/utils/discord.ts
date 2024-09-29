@@ -31,7 +31,7 @@ const formatPrice = (price: number): string => {
 const getProductUrl = (
   website: Website,
   externalProduct: ExternalProduct,
-  ean?: string
+  urlKey?: string
 ) => {
   let productUrl = `${website.baseUrl}${externalProduct.externalId}`;
 
@@ -42,8 +42,8 @@ const getProductUrl = (
   }
 
   if (website.name === "cultura") {
-    // not using externalId because we need to use ean from the response
-    productUrl = `${website.baseUrl}a-${ean}.html`;
+    // not using externalId because we need to use urlKey from the response since id in url can be SKU or EAN
+    productUrl = `${website.baseUrl}${urlKey}.html`;
   }
 
   if (website.name === "ldlc") {
@@ -58,13 +58,13 @@ const sendDiscordMessage = async ({
   website,
   alert,
   externalProduct,
-  ean,
+  urlKey,
 }: {
   product: Product;
   website: Website;
   alert: AlertWithPricepoint;
   externalProduct: ExternalProduct;
-  ean?: string;
+  urlKey?: string;
 }) => {
   try {
     while (!client.isReady()) {
@@ -81,7 +81,7 @@ const sendDiscordMessage = async ({
 
     channel = channel as TextChannel;
 
-    const productUrl = getProductUrl(website, externalProduct, ean);
+    const productUrl = getProductUrl(website, externalProduct, urlKey);
 
     const embed = new EmbedBuilder()
       .setColor("#0099ff")

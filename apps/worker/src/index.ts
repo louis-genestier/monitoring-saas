@@ -218,7 +218,7 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
         alert,
         externalProduct,
         // @ts-ignore
-        ean: prices.ean ?? undefined, // needed for cultura
+        urlKey: prices.urlKey ?? undefined, // needed for cultura
       });
       await prisma.alert.update({
         where: {

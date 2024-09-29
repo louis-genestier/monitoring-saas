@@ -54,7 +54,7 @@ async function main() {
       baseUrl: "https://www.cultura.com/p-",
       isEnabled: true,
       parameters:
-        'query={products(filter:{sku:{eq:"ID_TO_REPLACE"}}){items{ean stock_status url_suffix price_range{minimum_price{final_price{value}}}}}}',
+        'query={products(filter:{sku:{eq:"ID_TO_REPLACE"}}){items{ean stock_status url_key price_range{minimum_price{final_price{value}}}}}}',
       headers: {
         accept: "application/json",
         "user-agent":
