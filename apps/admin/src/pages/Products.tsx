@@ -175,7 +175,7 @@ export const Products: React.FC = () => {
     setEditingProduct(product);
     const updatedExternalIds =
       websites?.items.map((website) => {
-        const existingId = product.ProductId.find(
+        const existingId = product.ExternalProduct.find(
           (id) => id.websiteId === website.id
         );
         return {
@@ -227,6 +227,8 @@ export const Products: React.FC = () => {
 
   if (productsLoading || websitesLoading) return <div>Loading...</div>;
 
+  console.log(pricePoints);
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-4">
@@ -272,9 +274,13 @@ export const Products: React.FC = () => {
                       {product.name}
                     </TableCell>
                     <TableCell>
-                      {product.ProductId.map((id) => (
-                        <div key={id.id} className="text-sm text-gray-500">
-                          {id.website.name}: {id.externalId}
+                      {product.ExternalProduct.map((externalProduct) => (
+                        <div
+                          key={externalProduct.id}
+                          className="text-sm text-gray-500"
+                        >
+                          {externalProduct.website.name}:{" "}
+                          {externalProduct.externalId}
                         </div>
                       ))}
                     </TableCell>

@@ -30,7 +30,7 @@ const routes = app
       // skip,
       // take: limit,
       include: {
-        ProductId: {
+        ExternalProduct: {
           include: {
             website: true,
           },
@@ -56,7 +56,7 @@ const routes = app
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        ProductId: {
+        ExternalProduct: {
           include: {
             website: true,
           },
@@ -88,7 +88,7 @@ const routes = app
       });
 
       if (externalIds) {
-        await prisma.productId.createMany({
+        await prisma.externalProduct.createMany({
           data: externalIds.map((externalId) => ({
             productId: product.id,
             websiteId: externalId.websiteId,
@@ -115,7 +115,7 @@ const routes = app
         externalId: externalId.value,
       }));
 
-      const productIds = await prisma.productId.findMany({
+      const productIds = await prisma.externalProduct.findMany({
         where: { productId: id },
       });
 
@@ -141,7 +141,7 @@ const routes = app
       //   }
       // );
 
-      await prisma.productId.deleteMany({
+      await prisma.externalProduct.deleteMany({
         where: {
           productId: id,
           websiteId: { in: productIdsToDelete.map((p) => p.websiteId) },
@@ -167,7 +167,7 @@ const routes = app
       // }
 
       if (productIdsToCreate) {
-        await prisma.productId.createMany({
+        await prisma.externalProduct.createMany({
           data: productIdsToCreate,
         });
       }

@@ -3,14 +3,21 @@ import { Prisma, PrismaClient } from "./generated/client";
 export const prisma = new PrismaClient();
 export * from "./generated/client";
 
-export type TrackedProductWithAlert = Prisma.TrackedProductGetPayload<{
-  include: { Alert: true };
+export type ExternalProductWithAllRelations = Prisma.ExternalProductGetPayload<{
+  include: {
+    product: true;
+    website: true;
+  };
 }>;
 
-export type TrackedProductWithAllRelations = Prisma.TrackedProductGetPayload<{
-  include: { product: true; Alert: true; alertProvider: true };
+export type AlertWithPricepoint = Prisma.AlertGetPayload<{
+  include: {
+    pricePoint: true;
+  };
 }>;
 
-export type ProductWithProductIdsAndWebsite = Prisma.ProductGetPayload<{
-  include: { ProductId: { include: { website: true } } };
+export type ProductWithPricepoint = Prisma.ProductGetPayload<{
+  include: {
+    PricePoint: true;
+  };
 }>;

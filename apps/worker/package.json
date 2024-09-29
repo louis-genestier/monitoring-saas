@@ -6,6 +6,7 @@
   "exports": "./dist/index.js",
   "scripts": {
     "dev": "tsx src/index.ts",
+    "dev:average": "tsx src/setAveragePrices.ts",
     "build": "node build.cjs"
   },
   "prisma": {
@@ -28,6 +29,8 @@
   "dependencies": {
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
+    "date-fns": "^4.1.0",
+    "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
     "https-proxy-agent": "^7.0.5",
     "resend": "^4.0.0",
