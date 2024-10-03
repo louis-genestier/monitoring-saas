@@ -1,22 +1,23 @@
 import { JsonValue } from "@repo/prisma-client/src/generated/client/runtime/library";
 import { fetcher } from "./fetcher";
 import logger from "../utils/logger";
-import { PROXY_PASSWORD } from "../utils/env";
-type ItemResponse = {
-  ASIN: string;
-  Type: string;
-  sortOfferInfo: string;
-  isPrimeEligible: string;
-  Value: {
-    content: {
-      twisterSlotJson: {
-        isAvailable: boolean;
-        price: string;
-      };
-      twisterSlotDiv: string;
-    };
-  };
-};
+import * as cheerio from "cheerio";
+
+// type ItemResponse = {
+//   ASIN: string;
+//   Type: string;
+//   sortOfferInfo: string;
+//   isPrimeEligible: string;
+//   Value: {
+//     content: {
+//       twisterSlotJson: {
+//         isAvailable: boolean;
+//         price: string;
+//       };
+//       twisterSlotDiv: string;
+//     };
+//   };
+// };
 
 export const fetchAmazonPrice = async ({
   id,
@@ -30,15 +31,35 @@ export const fetchAmazonPrice = async ({
   headers: JsonValue;
 }) => {
   try {
-    const item = await fetcher<ItemResponse>(
+    const html = await fetcher<string>(
       apiBaseUrl,
       headers,
       id,
       parameters.replaceAll(/ID_TO_REPLACE/gi, id)
     );
 
+    const $ = cheerio.load(html);
+
+    const priceElement = $("span .centralizedApexPricePriceToPayMargin")
+      .first()
+      .text()
+      .trim();
+
+    if (priceElement) {
+      const price = parseFloat(priceElement.replace(",", ".").replace("€", ""));
+
+      if (!isNaN(price)) {
+        logger.info(`Found price for Amazon product ${id}: ${price}`);
+        return {
+          new: price,
+          used: undefined,
+        };
+      }
+    }
+
+    logger.warn(`No price found for Amazon product ${id}`);
     return {
-      new: parseFloat(item.Value.content.twisterSlotJson.price),
+      new: undefined,
       used: undefined,
     };
   } catch (error: any) {

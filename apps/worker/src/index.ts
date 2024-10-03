@@ -271,8 +271,6 @@ const main = async () => {
     const end = performance.now();
     logger.info(`Worker finished in ${(end - start) / 1000} seconds`);
   }
-
-  // sendDiscordMessage("Hello world");
 };
 
 main();

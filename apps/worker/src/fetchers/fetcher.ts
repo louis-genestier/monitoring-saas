@@ -29,7 +29,7 @@ export const fetcher = async <T>(
   }
 
   if (url.includes("amazon")) {
-    fullUrl = `${url}?${parameters}`;
+    fullUrl = `${url}/${parameters}`;
   }
 
   let response: AxiosResponse<T>;
