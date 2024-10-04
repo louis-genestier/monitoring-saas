@@ -45,8 +45,14 @@ export const fetchAmazonPrice = async ({
       .text()
       .trim();
 
+    console.log("priceElement", priceElement);
+
     if (priceElement) {
-      const price = parseFloat(priceElement.replace(",", ".").replace("€", ""));
+      const price = parseFloat(
+        priceElement.replace(",", ".").replace("€", "").replace(/\s/g, "")
+      );
+
+      console.log("price", price);
 
       if (!isNaN(price)) {
         logger.info(`Found price for Amazon product ${id}: ${price}`);

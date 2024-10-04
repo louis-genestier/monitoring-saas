@@ -5,8 +5,6 @@ import axios, {
 } from "../utils/axios";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { randomUserAgent } from "../utils/randomUserAgent";
-import logger from "../utils/logger";
-import { add } from "date-fns";
 
 export const fetcher = async <T>(
   url: string,
@@ -32,24 +30,20 @@ export const fetcher = async <T>(
 
   if (url.includes("amazon")) {
     fullUrl = `${url}?${parameters}`;
-    logger.info({
-      message: `DEBUG::: Fetching Amazon price for ${id} at ${fullUrl}`,
-      additionalInfo: { parameters, headers, id },
-    });
   }
 
   let response: AxiosResponse<T>;
 
   if (url.includes("ldlc")) {
     response = await axios.post<T>(fullUrl, null, axiosOptions);
-  } else if (url.includes("amazon") || url.includes("cultura")) {
+  } else if (url.includes("cultura")) {
     response = await axiosInstanceWithDatacenterProxy.get<T>(fullUrl, {
       headers: {
         ...axiosOptions.headers,
         "User-Agent": randomUserAgent(),
       },
     });
-  } else if (url.includes("rakuten")) {
+  } else if (url.includes("amazon") || url.includes("rakuten")) {
     response = await axiosInstanceWithResidentialProxy.get<T>(fullUrl, {
       headers: {
         ...axiosOptions.headers,
