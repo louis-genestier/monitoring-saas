@@ -198,20 +198,19 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
       }
     }
 
-    const alert = await prisma.alert.create({
-      data: {
-        externalProductId: externalProduct.id,
-        status: AlertStatus.PENDING,
-        pricePointId: newPricePoint.id,
-        discount: discountPercentage,
-      },
-      include: {
-        pricePoint: true,
-      },
-    });
-
     // send alert on discord now and set status to sent
     if (discountPercentage >= 30) {
+      const alert = await prisma.alert.create({
+        data: {
+          externalProductId: externalProduct.id,
+          status: AlertStatus.PENDING,
+          pricePointId: newPricePoint.id,
+          discount: discountPercentage,
+        },
+        include: {
+          pricePoint: true,
+        },
+      });
       await sendDiscordMessage({
         product,
         website,
@@ -240,6 +239,11 @@ const startWorker = async () => {
       include: {
         website: true,
         product: true,
+      },
+      where: {
+        website: {
+          isEnabled: true,
+        },
       },
     });
 
