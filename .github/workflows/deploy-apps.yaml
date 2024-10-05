@@ -12,6 +12,7 @@ jobs:
       changed-worker: ${{ steps.changed-worker.outputs.result }}
       changed-app-front: ${{ steps.changed-app-front.outputs.result }}
       changed-admin: ${{ steps.changed-admin.outputs.result }}
+      changed-discord-bot: ${{ steps.changed-discord-bot.outputs.result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,12 +67,23 @@ jobs:
             echo "No Admin changes detected"
             echo "result=false" >> $GITHUB_OUTPUT
           fi
+      - name: Changed discord-bot ?
+        id: changed-discord-bot
+        run: |
+          if grep -q '"discord-bot"' turbo_output.json; then
+            echo "Discord-bot changes detected"
+            echo "result=true" >> $GITHUB_OUTPUT
+          else
+            echo "No Discord-bot changes detected"
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
       - name: Debug Outputs
         run: |
           echo "Changed apps: ${{ steps.changed-api.outputs.result }}"
           echo "Changed worker: ${{ steps.changed-worker.outputs.result }}"
           echo "Changed app-front: ${{ steps.changed-app-front.outputs.result }}"
           echo "Changed admin: ${{ steps.changed-admin.outputs.result }}"
+          echo "Changed discord-bot: ${{ steps.changed-discord-bot.outputs.result }}"
 
   deploy-admin-front:
     needs: checks
@@ -348,4 +360,104 @@ jobs:
             
             echo 'Attempting to restart PM2 process';
             pm2 restart --update-env dealzap-api;
+          "
+
+  deploy-discord-bot:
+    needs: checks
+    runs-on: ubuntu-latest
+    if: ${{ needs.checks.outputs.changed-discord-bot == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Install deps
+        run: pnpm install
+      - name: Check Server Connectivity
+        run: |
+          if nc -z -w5 ${{ secrets.SERVER_SSH_HOST }} 22; then
+            echo "Server is reachable"
+          else
+            echo "Server is not reachable"
+            exit 1
+          fi
+      - name: Setup SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+      - name: Setup SSH known hosts
+        env:
+          SSH_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
+        run: |
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+      - name: Setup SSH tunnel
+        env:
+          SSH_USER: ${{ secrets.SERVER_SSH_USER }}
+          SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
+        run: |
+          ssh -vvv -fN -L 5432:localhost:5432 $SSH_USER@$SSH_HOST
+          if [ $? -eq 0 ]; then
+            echo "SSH tunnel established successfully"
+          else
+            echo "Failed to establish SSH tunnel"
+            exit 1
+          fi
+      - name: Execute prisma migration & seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cd packages/prisma-client
+          pnpm prisma migrate deploy
+          pnpm prisma generate
+          pnpm prisma db seed
+      - name: Close SSH tunnel
+        if: always()
+        run: pkill -f "ssh -fN -L 5432:localhost:5432" || true
+      - name: Build discord-bot
+        run: pnpm --filter=discord-bot build
+      - name: Create .env file
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+          GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+        run: |
+          cd apps/discord-bot
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          echo "NODE_ENV=production" >> .env
+          echo "DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN" >> .env
+          echo "DISCORD_CHANNEL_ID=$DISCORD_CHANNEL_ID" >> .env
+          echo "CLIENT_ID=$CLIENT_ID" >> .env
+      - name: Deploy discord-bot commands
+        run: pnpm --filter=discord-bot deploy-commands
+      - name: Prune discord-bot dependencies
+        run: |
+          cd apps/discord-bot
+          rm -rf node_modules
+          pnpm install --prod
+      - name: Deploy discord-bot
+        env:
+          SSH_USER: ${{ secrets.SERVER_SSH_USER }}
+          SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
+          DISCORD_BOT_DIR: ~/discord-bot-dealzap
+        run: |
+          ssh $SSH_USER@$SSH_HOST "mkdir -p $DISCORD_BOT_DIR"
+          scp -pr packages/prisma-client/src/generated/client/libquery_engine-debian-openssl-3.0.x.so.node $SSH_USER@$SSH_HOST:$API_DIR
+          scp -pr apps/discord-bot/{dist,node_modules,package.json,.env} $SSH_USER@$SSH_HOST:$DISCORD_BOT_DIR
+      - name: Debug and Restart discord-bot
+        env:
+          SSH_USER: ${{ secrets.SERVER_SSH_USER }}
+          SSH_HOST: ${{ secrets.SERVER_SSH_HOST }}
+          NODE_VERSION: 18 # Replace with your actual Node.js version
+        run: |
+          ssh $SSH_USER@$SSH_HOST "
+            echo 'Attempting to restart PM2 process';
+            pm2 restart --update-env dealzap-discord-bot;
           "

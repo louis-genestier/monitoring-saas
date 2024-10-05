@@ -90,11 +90,13 @@ model Product {
     PricePoint      PricePoint[]
     averagePrice    Float?
     updatedAt       DateTime          @default(now()) @updatedAt
+    createdAt       DateTime          @default(now())
+    createdBy       String?
 }
 
 model ExternalProduct {
     id         String  @id @default(cuid())
-    externalId String
+    externalId String  @unique
     productId  String
     websiteId  String
     product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)

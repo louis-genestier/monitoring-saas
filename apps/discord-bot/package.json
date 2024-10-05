@@ -1,0 +1,27 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx --watch src/index.ts",
+    "deploy-commands": "tsx src/deployCommands.ts",
+    "build": "node build.cjs"
+  },
+  "devDependencies": {
+    "tsx": "^4.17.0",
+    "valibot": "^0.38.0",
+    "prisma": "^5.19.1",
+    "esbuild": "^0.23.1",
+    "esbuild-plugin-tsc": "^0.4.0",
+    "@repo/prisma-client": "workspace:*"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.2",
+    "dotenv": "^16.4.5",
+    "winston": "^3.14.2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
