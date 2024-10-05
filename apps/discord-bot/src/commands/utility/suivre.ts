@@ -47,15 +47,27 @@ export const data = new SlashCommandBuilder()
     option.setName("id-leclerc").setDescription("ID du produit sur Leclerc")
   );
 
+const CAN_ACCESS_COMMAND = ["Admin", "Beta-testeur"];
+
 export const execute = async (interaction: CommandInteraction) => {
-  // const ids = {
-  //   rakuten: "",
-  //   amazon: "",
-  //   cultura: "",
-  //   fnac: "",
-  //   ldlc: "",
-  //   leclerc: "",
-  // };
+  const guild = interaction.guild!;
+
+  const member = guild.members.cache.get(interaction.user.id);
+
+  if (!member) {
+    await interaction.reply("⚠️ Vous n'êtes pas membre du serveur");
+    return;
+  }
+
+  const roles = member.roles.cache.map((role) => role.name);
+
+  if (!roles.some((role) => CAN_ACCESS_COMMAND.includes(role))) {
+    await interaction.reply(
+      "⚠️ Vous n'avez pas la permission d'utiliser cette commande"
+    );
+    return;
+  }
+
   const ids: {
     name: string;
     id: string;
