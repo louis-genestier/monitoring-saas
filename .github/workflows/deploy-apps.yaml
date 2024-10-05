@@ -435,6 +435,7 @@ jobs:
           echo "DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN" >> .env
           echo "DISCORD_CHANNEL_ID=$DISCORD_CHANNEL_ID" >> .env
           echo "CLIENT_ID=$CLIENT_ID" >> .env
+          echo "GUILD_ID=$GUILD_ID" >> .env
       - name: Deploy discord-bot commands
         run: pnpm --filter=discord-bot deploy-commands
       - name: Prune discord-bot dependencies
