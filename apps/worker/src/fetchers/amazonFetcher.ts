@@ -24,11 +24,13 @@ export const fetchAmazonPrice = async ({
   apiBaseUrl,
   parameters,
   headers,
+  retries = 0,
 }: {
   id: string;
   apiBaseUrl: string;
   parameters: string;
   headers: JsonValue;
+  retries?: number;
 }) => {
   try {
     const html = await fetcher<string>(
@@ -45,7 +47,18 @@ export const fetchAmazonPrice = async ({
       .text()
       .trim();
 
-    console.log("priceElement", priceElement);
+    if (!priceElement && retries < 3) {
+      logger.warn(`No price found for Amazon product ${id}, retry ${retries}`);
+      // retry this fetcher
+
+      return await fetchAmazonPrice({
+        id,
+        apiBaseUrl,
+        parameters,
+        headers,
+        retries: retries + 1,
+      });
+    }
 
     if (priceElement) {
       const price = parseFloat(
