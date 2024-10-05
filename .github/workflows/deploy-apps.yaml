@@ -460,5 +460,6 @@ jobs:
         run: |
           ssh $SSH_USER@$SSH_HOST "
             echo 'Attempting to restart PM2 process';
+            cd ~/discord-bot-dealzap;
             pm2 restart --update-env dealzap-discord-bot;
           "
