@@ -9,6 +9,7 @@ const envSchema = object({
   PROXY_PASSWORD: string(),
   DISCORD_CHANNEL_ID: string(),
   DISCORD_BOT_TOKEN: string(),
+  MOBILE_PROXY_URL: optional(string()),
 });
 
 const env = parse(envSchema, process.env);
@@ -19,4 +20,5 @@ export const {
   DISCORD_CHANNEL_ID,
   PROXY_URL_DATACENTERS,
   DISCORD_BOT_TOKEN,
+  MOBILE_PROXY_URL,
 } = env;

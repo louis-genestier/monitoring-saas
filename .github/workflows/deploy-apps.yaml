@@ -204,6 +204,7 @@ jobs:
           PROXY_URL_DATACENTERS: ${{ secrets.PROXY_URL_DATACENTERS }}
           DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          MOBILE_PROXY_URL: ${{ secrets.MOBILE_PROXY_URL }}
         run: |
           cd apps/worker
           echo "DATABASE_URL=$DATABASE_URL" > .env
@@ -214,6 +215,7 @@ jobs:
           echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> .env
           echo "DISCORD_CHANNEL_ID=$DISCORD_CHANNEL_ID" >> .env
           echo "DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN" >> .env
+          echo "MOBILE_PROXY_URL=$MOBILE_PROXY_URL" >> .env
       - name: Prune worker dependencies
         run: |
           cd apps/worker

@@ -1,5 +1,9 @@
 import axios from "axios";
-import { PROXY_URL_RESIDENTIALS, PROXY_URL_DATACENTERS } from "./env";
+import {
+  PROXY_URL_RESIDENTIALS,
+  PROXY_URL_DATACENTERS,
+  MOBILE_PROXY_URL,
+} from "./env";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { Agent } from "https";
 
@@ -13,6 +17,14 @@ const agentResidentials = PROXY_URL_RESIDENTIALS
 
 const agentDatacenters = PROXY_URL_DATACENTERS
   ? new HttpsProxyAgent(PROXY_URL_DATACENTERS, {
+      rejectUnauthorized: false,
+    })
+  : new Agent({
+      rejectUnauthorized: false,
+    });
+
+const agentMobile = MOBILE_PROXY_URL
+  ? new HttpsProxyAgent(MOBILE_PROXY_URL, {
       rejectUnauthorized: false,
     })
   : new Agent({
@@ -35,6 +47,16 @@ const axiosInstanceWithDatacenterProxy = axios.create({
   timeout: 5000,
 });
 
+const axiosInstanceWithMobileProxy = axios.create({
+  httpsAgent: agentMobile,
+  httpAgent: agentMobile,
+  timeout: 5000,
+});
+
 export default axiosInstance;
 
-export { axiosInstanceWithResidentialProxy, axiosInstanceWithDatacenterProxy };
+export {
+  axiosInstanceWithResidentialProxy,
+  axiosInstanceWithDatacenterProxy,
+  axiosInstanceWithMobileProxy,
+};

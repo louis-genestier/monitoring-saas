@@ -2,6 +2,7 @@ import { JsonValue } from "@repo/prisma-client/src/generated/client/runtime/libr
 import axios, {
   axiosInstanceWithResidentialProxy,
   axiosInstanceWithDatacenterProxy,
+  axiosInstanceWithMobileProxy,
 } from "../utils/axios";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { randomUserAgent } from "../utils/randomUserAgent";
@@ -43,7 +44,14 @@ export const fetcher = async <T>(
         "User-Agent": randomUserAgent(),
       },
     });
-  } else if (url.includes("amazon") || url.includes("rakuten")) {
+  } else if (url.includes("amazon")) {
+    response = await axiosInstanceWithMobileProxy.get<T>(fullUrl, {
+      headers: {
+        ...axiosOptions.headers,
+        "User-Agent": randomUserAgent(),
+      },
+    });
+  } else if (url.includes("rakuten")) {
     response = await axiosInstanceWithResidentialProxy.get<T>(fullUrl, {
       headers: {
         ...axiosOptions.headers,
