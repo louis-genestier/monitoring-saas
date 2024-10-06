@@ -123,7 +123,7 @@ export const execute = async (interaction: CommandInteraction) => {
       .addFields({
         name: "Fnac",
         value: fnac
-          ? `ID: ${fnac.id}\nPrix: ${fnac.price}€\nNom: ${fnac.name}\nLien: ${fnac.link}`
+          ? `ID: a${fnac.id}\nPrix: ${fnac.price}€\nNom: ${fnac.name}\nLien: ${fnac.link}`
           : "Aucun produit trouvé",
       })
       .addFields({
@@ -155,7 +155,7 @@ export const execute = async (interaction: CommandInteraction) => {
         value:
           "Si les informations sont correctes, relancez la commande comme ceci:\n" +
           "```\n" +
-          `/suivre nom:${name.value} ${leclerc?.id ? `id-leclerc:${leclerc.id}` : ""} ${fnac?.id ? `id-fnac:${fnac.id}` : ""} ${rakuten?.id ? `id-rakuten:${rakuten.id}` : ""} ${cultura?.id ? `id-cultura:${cultura.id}` : ""} ${amazon?.id ? `id-amazon:${amazon.id}` : ""} ${ldlc?.id ? `id-ldlc:${ldlc.id}` : ""}` +
+          `/suivre nom:${name.value} ${leclerc?.id ? `id-leclerc:${leclerc.id}` : ""} ${fnac?.id ? `id-fnac:a${fnac.id}` : ""} ${rakuten?.id ? `id-rakuten:${rakuten.id}` : ""} ${cultura?.id ? `id-cultura:${cultura.id}` : ""} ${amazon?.id ? `id-amazon:${amazon.id}` : ""} ${ldlc?.id ? `id-ldlc:${ldlc.id}` : ""}` +
           "\n" +
           "```\n" +
           "Copiez et collez cette commande pour suivre le produit.",

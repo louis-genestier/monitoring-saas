@@ -189,7 +189,7 @@ export const getFnacProduct = async (keywords: string) => {
       id: response.data.PageOfResults[0].Prid.Id,
       price: response.data.PageOfResults[0].InfosPrice.MainOffer.Price,
       name: response.data.PageOfResults[0].Title,
-      link: response.data.PageOfResults[0].Links[0].Href,
+      link: `https://www.fnac.com//a${response.data.PageOfResults[0].Prid.Id}`,
     };
   } catch (error) {
     logger.error(`Failed to fetch Fnac product: ${error} for ${keywords}`);
