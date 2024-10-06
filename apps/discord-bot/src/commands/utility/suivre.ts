@@ -1,6 +1,17 @@
 import { prisma } from "@repo/prisma-client";
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  CommandInteraction,
+  Embed,
+  EmbedBuilder,
+  SlashCommandBuilder,
+} from "discord.js";
 import logger from "../../utils/logger";
+import { getLeclercProduct } from "../../utils/fetchers/leclercFetcher";
+import { getFnacProduct } from "../../utils/fetchers/fnacFetcher";
+import { getRakutenProduct } from "../../utils/fetchers/rakutenFetcher";
+import { getCulturaProduct } from "../../utils/fetchers/culturaFetcher";
+import { getAmazonProduct } from "../../utils/fetchers/amazonFetcher";
+import { getLdlcProduct } from "../../utils/fetchers/ldlcFetcher";
 
 function validateEAN13(ean: string): boolean {
   if (ean.length !== 13 || !/^\d{13}$/.test(ean)) {
@@ -88,7 +99,69 @@ export const execute = async (interaction: CommandInteraction) => {
     !idLdlc?.value &&
     !idLeclerc?.value
   ) {
-    await interaction.reply("⚠️ Vous devez renseigner au moins un ID");
+    await interaction.deferReply();
+    // we will search for the product on all websites then send a message to the user with the ids and tell him to verify them and then use the command again
+    const [leclerc, fnac, rakuten, cultura, amazon, ldlc] = await Promise.all([
+      getLeclercProduct(name.value),
+      getFnacProduct(name.value),
+      getRakutenProduct(name.value),
+      getCulturaProduct(name.value),
+      getAmazonProduct(name.value),
+      getLdlcProduct(name.value),
+    ]);
+
+    // create an embed with all the products informations
+    const embed = new EmbedBuilder();
+    embed
+      .setTitle(`Produit trouvé: ${name.value}`)
+      .addFields({
+        name: "Leclerc",
+        value: leclerc
+          ? `ID: ${leclerc.id}\nPrix: ${leclerc.price}€\nNom: ${leclerc.name}\nLien: ${leclerc.link}`
+          : "Aucun produit trouvé",
+      })
+      .addFields({
+        name: "Fnac",
+        value: fnac
+          ? `ID: ${fnac.id}\nPrix: ${fnac.price}€\nNom: ${fnac.name}\nLien: ${fnac.link}`
+          : "Aucun produit trouvé",
+      })
+      .addFields({
+        name: "Rakuten",
+        value: rakuten
+          ? `ID: ${rakuten.id}\nPrix: ${rakuten.price}€\nNom: ${rakuten.name}\nLien: ${rakuten.link}`
+          : "Aucun produit trouvé",
+      })
+      .addFields({
+        name: "Cultura",
+        value: cultura
+          ? `ID: ${cultura.id}\nPrix: ${cultura.price}€\nNom: ${cultura.name}\nLien: ${cultura.link}`
+          : "Aucun produit trouvé",
+      })
+      .addFields({
+        name: "Amazon",
+        value: amazon
+          ? `ID: ${amazon.id}\nPrix: ${amazon.price}€\nNom: ${amazon.name}\nLien: ${amazon.link}`
+          : "Aucun produit trouvé",
+      })
+      .addFields({
+        name: "Ldlc",
+        value: ldlc
+          ? `ID: ${ldlc.id}\nPrix: ${ldlc.price}€\nNom: ${ldlc.name}\nLien: ${ldlc.link}`
+          : "Aucun produit trouvé",
+      })
+      .addFields({
+        name: "Nouvelle commande",
+        value:
+          "Si les informations sont correctes, relancez la commande comme ceci:\n" +
+          "```\n" +
+          `/suivre nom:${name.value} ${leclerc?.id ? `id-leclerc:${leclerc.id}` : ""} ${fnac?.id ? `id-fnac:${fnac.id}` : ""} ${rakuten?.id ? `id-rakuten:${rakuten.id}` : ""} ${cultura?.id ? `id-cultura:${cultura.id}` : ""} ${amazon?.id ? `id-amazon:${amazon.id}` : ""} ${ldlc?.id ? `id-ldlc:${ldlc.id}` : ""}` +
+          "\n" +
+          "```\n" +
+          "Copiez et collez cette commande pour suivre le produit.",
+      });
+
+    await interaction.editReply({ embeds: [embed] });
     return;
   }
 

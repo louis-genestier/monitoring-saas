@@ -9,16 +9,19 @@
     "build": "node build.cjs"
   },
   "devDependencies": {
-    "tsx": "^4.17.0",
-    "valibot": "^0.38.0",
-    "prisma": "^5.19.1",
+    "@repo/prisma-client": "workspace:*",
     "esbuild": "^0.23.1",
     "esbuild-plugin-tsc": "^0.4.0",
-    "@repo/prisma-client": "workspace:*"
+    "prisma": "^5.19.1",
+    "tsx": "^4.17.0",
+    "valibot": "^0.38.0"
   },
   "dependencies": {
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
     "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
+    "https-proxy-agent": "^7.0.5",
     "winston": "^3.14.2"
   },
   "keywords": [],

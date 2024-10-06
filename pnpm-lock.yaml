@@ -263,12 +263,21 @@ importers:
 
   apps/discord-bot:
     dependencies:
+      axios:
+        specifier: ^1.7.7
+        version: 1.7.7
+      cheerio:
+        specifier: ^1.0.0
+        version: 1.0.0
       discord.js:
         specifier: ^14.16.2
         version: 14.16.2
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
+      https-proxy-agent:
+        specifier: ^7.0.5
+        version: 7.0.5
       winston:
         specifier: ^3.14.2
         version: 3.14.2
@@ -8462,16 +8471,6 @@ packages:
       - supports-color
     dev: true
 
-  /https-proxy-agent@7.0.1:
-    resolution: {integrity: sha512-Eun8zV0kcYS1g19r78osiQLEFIRspRUDd9tIfBCTBPBeMieF/EsJNL8VI3xOIdYRDEkjQnqOYPsZ2DsWsVsFwQ==}
-    engines: {node: '>= 14'}
-    dependencies:
-      agent-base: 7.1.0
-      debug: 4.3.6
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
   /https-proxy-agent@7.0.5:
     resolution: {integrity: sha512-1e4Wqeblerz+tMKPIq2EMGiiWW1dIjZOksyHWSUm1rmuvw/how9hBHZ38lAGj5ID4Ik6EdkOw7NmWPy6LAwalw==}
     engines: {node: '>= 14'}
@@ -10639,7 +10638,7 @@ packages:
       agent-base: 7.1.0
       debug: 4.3.6
       http-proxy-agent: 7.0.0
-      https-proxy-agent: 7.0.1
+      https-proxy-agent: 7.0.5
       lru-cache: 7.18.3
       pac-proxy-agent: 7.0.0
       proxy-from-env: 1.1.0
