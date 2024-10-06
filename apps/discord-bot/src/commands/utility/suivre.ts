@@ -170,17 +170,18 @@ export const execute = async (interaction: CommandInteraction) => {
       const reply = await interaction.editReply({ embeds: [embed] });
       await reply.react("✅");
 
-      const collector = reply.createReactionCollector({
-        filter: (reaction, user) =>
-          reaction.emoji.name === "✅" && user.id === interaction.user.id,
-        time: 60000,
-        max: 1,
-      });
+      try {
+        const reactions = await reply.awaitReactions({
+          filter: (reaction, user) =>
+            reaction.emoji.name === "✅" && user.id === interaction.user.id,
+          time: 60000,
+          max: 1,
+        });
 
-      collector.on("collect", async () => {
-        await interaction.editReply("🧠 Ajout en cours");
-        const author = interaction.user.username;
-        try {
+        if (reactions.size > 0) {
+          await interaction.editReply("🧠 Ajout en cours");
+          const author = interaction.user.username;
+
           const products = [
             leclerc,
             fnac,
@@ -195,8 +196,6 @@ export const execute = async (interaction: CommandInteraction) => {
             link: string;
             websiteName: string;
           }[];
-
-          console.log(products);
 
           const websites = await prisma.website.findMany({
             where: {
@@ -228,27 +227,98 @@ export const execute = async (interaction: CommandInteraction) => {
           });
 
           await interaction.editReply("✅ Produit ajouté au monitoring");
-        } catch (error) {
-          logger.error(`Error while adding product to monitoring: ${error}`);
-          await interaction.editReply(
-            "⚠️ Une erreur est survenue, etes-vous sur que le produit n'est pas déjà suivi ?"
-          );
-        } finally {
-          collector.stop();
-        }
-      });
-
-      collector.on("end", async () => {
-        try {
+          await reply.react("☑️");
+        } else {
           await reply.reactions.removeAll();
           await reply.react("❌");
           await interaction.editReply(
             "❌ Temps écoulé, veuillez relancer la commande"
           );
-        } catch (error) {
-          logger.error(`Error while ending collector: ${error}`);
+          return;
         }
-      });
+      } catch (error) {
+        logger.error(`Error while adding product to monitoring: ${error}`);
+        await interaction.editReply(
+          "⚠️ Une erreur est survenue, etes-vous sur que le produit n'est pas déjà suivi ?"
+        );
+        return;
+      }
+
+      // const collector = reply.createReactionCollector({
+      //   filter: (reaction, user) =>
+      //     reaction.emoji.name === "✅" && user.id === interaction.user.id,
+      //   time: 60000,
+      //   max: 1,
+      // });
+
+      // collector.on("collect", async () => {
+      //   await interaction.editReply("🧠 Ajout en cours");
+      //   const author = interaction.user.username;
+      //   try {
+      //     const products = [
+      //       leclerc,
+      //       fnac,
+      //       rakuten,
+      //       cultura,
+      //       amazon,
+      //       ldlc,
+      //     ].filter((product) => !!product) as {
+      //       id: string;
+      //       name: string;
+      //       price: number;
+      //       link: string;
+      //       websiteName: string;
+      //     }[];
+
+      //     const websites = await prisma.website.findMany({
+      //       where: {
+      //         name: {
+      //           in: products.map((product) => product.websiteName),
+      //         },
+      //       },
+      //     });
+
+      //     await prisma.product.create({
+      //       data: {
+      //         name: name.value,
+      //         createdBy: author,
+      //         ExternalProduct: {
+      //           create: websites.map((website) => ({
+      //             externalId: `${
+      //               products.find(
+      //                 (product) => product.websiteName === website.name
+      //               )!.id
+      //             }`,
+      //             website: {
+      //               connect: {
+      //                 id: website.id,
+      //               },
+      //             },
+      //           })),
+      //         },
+      //       },
+      //     });
+      //     await interaction.editReply("✅ Produit ajouté au monitoring");
+      //   } catch (error) {
+      //     logger.error(`Error while adding product to monitoring: ${error}`);
+      //     await interaction.editReply(
+      //       "⚠️ Une erreur est survenue, etes-vous sur que le produit n'est pas déjà suivi ?"
+      //     );
+      //     collector.stop();
+      //   }
+      // });
+
+      // collector.on("end", async () => {
+      //   try {
+      //     await reply.reactions.removeAll();
+      //     await reply.react("❌");
+      //     await interaction.editReply(
+      //       "❌ Temps écoulé, veuillez relancer la commande"
+      //     );
+      //   } catch (error) {
+      //     logger.error(`Error while ending collector: ${error}`);
+      //   }
+      // });
 
       return;
     } catch (error) {
