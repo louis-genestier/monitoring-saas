@@ -60,40 +60,40 @@ export const getAmazonProduct = async (keywords: string) => {
     }
 
     const data = response.data.split("&&&");
-    const productData = JSON.parse(data[6]) as [
-      string,
-      string,
-      {
-        html: string;
-        asin: string;
-        index: number;
-        data: any;
-      },
-    ];
+    const searchResult = data.find((d) => {
+      try {
+        const [, id, { html }] = JSON.parse(d);
+        return (
+          id.includes("search-result-") &&
+          !html.includes("Publicité sponsorisée")
+        );
+      } catch (error) {
+        return false;
+      }
+    });
 
-    if (!productData) {
-      console.log(`No product found on Amazon for ${keywords}`);
+    if (searchResult) {
+      const [, id, { html, asin }] = JSON.parse(searchResult);
+
+      const $ = cheerio.load(html);
+      const productName = $("h2 span.a-size-base-plus").text().trim();
+      const price =
+        $("span.a-price-whole").first().text().trim() +
+        $("span.a-price-fraction").first().text().trim() +
+        $("span.a-price-symbol").first().text().trim();
+
+      return {
+        name: productName,
+        id: asin,
+        price,
+        link: `https://www.amazon.fr/dp/${asin}`,
+      };
+    } else {
+      logger.error(
+        `Failed to fetch Amazon product: no search result for ${keywords}`
+      );
       return;
     }
-
-    const $ = cheerio.load(productData[2].html);
-    const productName = $("h2 span.a-size-base-plus").text().trim();
-    const price =
-      $("span.a-price-whole").first().text().trim() +
-      $("span.a-price-fraction").first().text().trim() +
-      $("span.a-price-symbol").first().text().trim();
-
-    if (!productName) {
-      console.log(`No product name found on Amazon for ${keywords}`);
-      return;
-    }
-
-    return {
-      name: productName,
-      id: productData[2].asin,
-      price,
-      link: `https://www.amazon.fr/dp/${productData[2].asin}`,
-    };
   } catch (e) {
     logger.error(`Failed to fetch Amazon product: ${e} for ${keywords}`);
     return;
