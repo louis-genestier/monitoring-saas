@@ -74,6 +74,7 @@ export const getLeclercProduct = async (keywords: string) => {
     }
 
     return {
+      websiteName: "leclerc",
       id: response.data.product.items[0].url.split("-").pop(),
       price: response.data.product.items[0].price,
       name: response.data.product.items[0].title.raw,

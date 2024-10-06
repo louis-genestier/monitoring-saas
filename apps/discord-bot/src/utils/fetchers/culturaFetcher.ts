@@ -119,6 +119,7 @@ export const getCulturaProduct = async (keywords: string) => {
     }
 
     return {
+      websiteName: "cultura",
       id: response.data.data.products.items[0].sku,
       price:
         response.data.data.products.items[0].price_range.minimum_price

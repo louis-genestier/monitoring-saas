@@ -53,6 +53,7 @@ export const getLdlcProduct = async (keywords: string) => {
       );
 
       return {
+        websiteName: "ldlc",
         name,
         id: url?.split("/")?.pop()?.split(".")[0],
         price: price.toFixed(2),

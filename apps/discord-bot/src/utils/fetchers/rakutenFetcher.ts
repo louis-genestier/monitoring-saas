@@ -107,6 +107,7 @@ export const getRakutenProduct = async (keywords: string) => {
     }
 
     return {
+      websiteName: "rakuten",
       id: rakutenResponse.data.products[0].id,
       price: rakutenResponse.data.products[0].newBestPrice,
       name: rakutenResponse.data.products[0].headline,

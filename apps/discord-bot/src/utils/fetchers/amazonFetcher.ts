@@ -83,6 +83,7 @@ export const getAmazonProduct = async (keywords: string) => {
         $("span.a-price-symbol").first().text().trim();
 
       return {
+        websiteName: "amazon",
         name: productName,
         id: asin,
         price,

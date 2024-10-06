@@ -99,70 +99,163 @@ export const execute = async (interaction: CommandInteraction) => {
     !idLdlc?.value &&
     !idLeclerc?.value
   ) {
-    await interaction.deferReply();
-    // we will search for the product on all websites then send a message to the user with the ids and tell him to verify them and then use the command again
-    const [leclerc, fnac, rakuten, cultura, amazon, ldlc] = await Promise.all([
-      getLeclercProduct(name.value),
-      getFnacProduct(name.value),
-      getRakutenProduct(name.value),
-      getCulturaProduct(name.value),
-      getAmazonProduct(name.value),
-      getLdlcProduct(name.value),
-    ]);
+    try {
+      await interaction.deferReply();
+      const [leclerc, fnac, rakuten, cultura, amazon, ldlc] = await Promise.all(
+        [
+          getLeclercProduct(name.value),
+          getFnacProduct(name.value),
+          getRakutenProduct(name.value),
+          getCulturaProduct(name.value),
+          getAmazonProduct(name.value),
+          getLdlcProduct(name.value),
+        ]
+      );
 
-    // create an embed with all the products informations
-    const embed = new EmbedBuilder();
-    embed
-      .setTitle(`Produit trouvé: ${name.value}`)
-      .addFields({
-        name: "Leclerc",
-        value: leclerc
-          ? `ID: ${leclerc.id}\nPrix: ${leclerc.price}€\nNom: ${leclerc.name}\nLien: ${leclerc.link}`
-          : "Aucun produit trouvé",
-      })
-      .addFields({
-        name: "Fnac",
-        value: fnac
-          ? `ID: a${fnac.id}\nPrix: ${fnac.price}€\nNom: ${fnac.name}\nLien: ${fnac.link}`
-          : "Aucun produit trouvé",
-      })
-      .addFields({
-        name: "Rakuten",
-        value: rakuten
-          ? `ID: ${rakuten.id}\nPrix: ${rakuten.price}€\nNom: ${rakuten.name}\nLien: ${rakuten.link}`
-          : "Aucun produit trouvé",
-      })
-      .addFields({
-        name: "Cultura",
-        value: cultura
-          ? `ID: ${cultura.id}\nPrix: ${cultura.price}€\nNom: ${cultura.name}\nLien: ${cultura.link}`
-          : "Aucun produit trouvé",
-      })
-      .addFields({
-        name: "Amazon",
-        value: amazon
-          ? `ID: ${amazon.id}\nPrix: ${amazon.price}€\nNom: ${amazon.name}\nLien: ${amazon.link}`
-          : "Aucun produit trouvé",
-      })
-      .addFields({
-        name: "Ldlc",
-        value: ldlc
-          ? `ID: ${ldlc.id}\nPrix: ${ldlc.price}€\nNom: ${ldlc.name}\nLien: ${ldlc.link}`
-          : "Aucun produit trouvé",
-      })
-      .addFields({
-        name: "Nouvelle commande",
-        value:
-          "Si les informations sont correctes, relancez la commande comme ceci:\n" +
-          "```\n" +
-          `/suivre nom:${name.value} ${leclerc?.id ? `id-leclerc:${leclerc.id}` : ""} ${fnac?.id ? `id-fnac:a${fnac.id}` : ""} ${rakuten?.id ? `id-rakuten:${rakuten.id}` : ""} ${cultura?.id ? `id-cultura:${cultura.id}` : ""} ${amazon?.id ? `id-amazon:${amazon.id}` : ""} ${ldlc?.id ? `id-ldlc:${ldlc.id}` : ""}` +
-          "\n" +
-          "```\n" +
-          "Copiez et collez cette commande pour suivre le produit.",
+      const embed = new EmbedBuilder();
+      embed
+        .setTitle(`Produit trouvé: ${name.value}`)
+        .addFields({
+          name: "Leclerc",
+          value: leclerc
+            ? `ID: ${leclerc.id}\nPrix: ${leclerc.price}€\nNom: ${leclerc.name}\nLien: ${leclerc.link}`
+            : "Aucun produit trouvé",
+        })
+        .addFields({
+          name: "Fnac",
+          value: fnac
+            ? `ID: a${fnac.id}\nPrix: ${fnac.price}€\nNom: ${fnac.name}\nLien: ${fnac.link}`
+            : "Aucun produit trouvé",
+        })
+        .addFields({
+          name: "Rakuten",
+          value: rakuten
+            ? `ID: ${rakuten.id}\nPrix: ${rakuten.price}€\nNom: ${rakuten.name}\nLien: ${rakuten.link}`
+            : "Aucun produit trouvé",
+        })
+        .addFields({
+          name: "Cultura",
+          value: cultura
+            ? `ID: ${cultura.id}\nPrix: ${cultura.price}€\nNom: ${cultura.name}\nLien: ${cultura.link}`
+            : "Aucun produit trouvé",
+        })
+        .addFields({
+          name: "Amazon",
+          value: amazon
+            ? `ID: ${amazon.id}\nPrix: ${amazon.price}€\nNom: ${amazon.name}\nLien: ${amazon.link}`
+            : "Aucun produit trouvé",
+        })
+        .addFields({
+          name: "Ldlc",
+          value: ldlc
+            ? `ID: ${ldlc.id}\nPrix: ${ldlc.price}€\nNom: ${ldlc.name}\nLien: ${ldlc.link}`
+            : "Aucun produit trouvé",
+        })
+        .addFields({
+          name: "✅ Validation et confirmation",
+          value:
+            "Vérifiez que les informations provenantes des différents sites sont correctes.\n" +
+            "Si c'est le cas cliquez sur ✅ juste en dessous pour ajouter le produit au suivi.",
+        })
+        .addFields({
+          name: "🤔 Information incorrectes ?",
+          value:
+            "Si les informations sont incorrectes, vous pouvez récupérer le bon ID manuellement et lancer cette commande en modifiant le mauvais ID:\n" +
+            "```\n" +
+            `/suivre nom:${name.value} ${leclerc?.id ? `id-leclerc:${leclerc.id}` : ""} ${fnac?.id ? `id-fnac:a${fnac.id}` : ""} ${rakuten?.id ? `id-rakuten:${rakuten.id}` : ""} ${cultura?.id ? `id-cultura:${cultura.id}` : ""} ${amazon?.id ? `id-amazon:${amazon.id}` : ""} ${ldlc?.id ? `id-ldlc:${ldlc.id}` : ""}` +
+            "\n" +
+            "```\n",
+        });
+
+      const reply = await interaction.editReply({ embeds: [embed] });
+      await reply.react("✅");
+
+      const collector = reply.createReactionCollector({
+        filter: (reaction, user) =>
+          reaction.emoji.name === "✅" && user.id === interaction.user.id,
+        time: 60000,
+        max: 1,
       });
 
-    await interaction.editReply({ embeds: [embed] });
-    return;
+      collector.on("collect", async () => {
+        await interaction.editReply("🧠 Ajout en cours");
+        const author = interaction.user.username;
+        try {
+          const products = [
+            leclerc,
+            fnac,
+            rakuten,
+            cultura,
+            amazon,
+            ldlc,
+          ].filter((product) => !!product) as {
+            id: string;
+            name: string;
+            price: number;
+            link: string;
+            websiteName: string;
+          }[];
+
+          console.log(products);
+
+          const websites = await prisma.website.findMany({
+            where: {
+              name: {
+                in: products.map((product) => product.websiteName),
+              },
+            },
+          });
+
+          await prisma.product.create({
+            data: {
+              name: name.value,
+              createdBy: author,
+              ExternalProduct: {
+                create: websites.map((website) => ({
+                  externalId: `${
+                    products.find(
+                      (product) => product.websiteName === website.name
+                    )!.id
+                  }`,
+                  website: {
+                    connect: {
+                      id: website.id,
+                    },
+                  },
+                })),
+              },
+            },
+          });
+
+          await interaction.editReply("✅ Produit ajouté au monitoring");
+        } catch (error) {
+          logger.error(`Error while adding product to monitoring: ${error}`);
+          await interaction.editReply(
+            "⚠️ Une erreur est survenue, etes-vous sur que le produit n'est pas déjà suivi ?"
+          );
+        } finally {
+          collector.stop();
+        }
+      });
+
+      collector.on("end", async () => {
+        try {
+          await reply.reactions.removeAll();
+          await reply.react("❌");
+          await interaction.editReply(
+            "❌ Temps écoulé, veuillez relancer la commande"
+          );
+        } catch (error) {
+          logger.error(`Error while ending collector: ${error}`);
+        }
+      });
+
+      return;
+    } catch (error) {
+      logger.error(`Error while fetching products: ${error}`);
+      await interaction.reply("⚠️ Une erreur est survenue, veuillez réessayer");
+      return;
+    }
   }
 
   // 1. check using regex that ids are correct
