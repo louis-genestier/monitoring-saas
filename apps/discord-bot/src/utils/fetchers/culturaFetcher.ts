@@ -6,6 +6,7 @@ type CulturaResponse = {
       items: Array<{
         name: string;
         sku: string;
+        url_key: string;
         price_range: {
           minimum_price: {
             regular_price: {
@@ -20,37 +21,6 @@ type CulturaResponse = {
   };
 };
 
-export type LeclercResponse = {
-  product: {
-    items: Array<{
-      type: string;
-      url: string;
-      imageUrl: string;
-      title: {
-        raw: string;
-        highlighted: string;
-      };
-      subtitle: {
-        raw: string;
-        highlighted: string;
-      };
-      content: {};
-      price: number;
-    }>;
-    count: number;
-  };
-  edito: {
-    items: Array<any>;
-    count: number;
-  };
-  term: {
-    items: Array<any>;
-    count: number;
-  };
-  bandeau_scamark: any;
-  match_scamark: Array<any>;
-};
-
 export const getCulturaProduct = async (keywords: string) => {
   const query = `{
           products(
@@ -60,6 +30,7 @@ export const getCulturaProduct = async (keywords: string) => {
           ) {
             items {
               name
+              url_key
               sku
               price_range {
                 minimum_price {
@@ -125,7 +96,7 @@ export const getCulturaProduct = async (keywords: string) => {
         response.data.data.products.items[0].price_range.minimum_price
           .regular_price.value,
       name: response.data.data.products.items[0].name,
-      link: `https://www.cultura.com/p-a-${response.data.data.products.items[0].sku}.html`,
+      link: `https://www.cultura.com/p-${response.data.data.products.items[0].url_key}.html`,
     };
   } catch (error) {
     logger.error(`Failed to fetch Cultura product: ${error} for ${keywords}`);
