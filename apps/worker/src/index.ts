@@ -229,7 +229,9 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
       });
     }
   } catch (error) {
-    logger.error(`Error in getPrice: ${error}`);
+    logger.error(
+      `Error in getPrice: ${error}, on website ${externalProduct.website.name} and product ${externalProduct.product.name}`
+    );
   }
 };
 
