@@ -47,7 +47,7 @@ export const fetchAmazonPrice = async ({
       .text()
       .trim();
 
-    if (!priceElement && retries < 3) {
+    if (!priceElement && retries < 5) {
       logger.warn(`No price found for Amazon product ${id}, retry ${retries}`);
       // retry this fetcher
 
@@ -77,6 +77,7 @@ export const fetchAmazonPrice = async ({
     }
 
     logger.warn(`No price found for Amazon product ${id}`);
+    logger.error({ html });
     return {
       new: undefined,
       used: undefined,
