@@ -67,9 +67,6 @@ export const execute = async (interaction: CommandInteraction) => {
       .setDescription(
         `Page ${page} sur ${totalPages} (${totalCount} produits trouvés)`
       );
-    // .setFooter({
-    //   text: `Utilisez les boutons ci-dessous pour naviguer entre les pages`,
-    // });
 
     products.forEach((product, index) => {
       const websitesString = product.ExternalProduct.map(

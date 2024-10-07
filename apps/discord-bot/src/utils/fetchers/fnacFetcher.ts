@@ -187,7 +187,7 @@ export const getFnacProduct = async (keywords: string) => {
 
     return {
       websiteName: "fnac",
-      id: response.data.PageOfResults[0].Prid.Id,
+      id: `${response.data.PageOfResults[0].Prid.Id}-1`,
       price: response.data.PageOfResults[0].InfosPrice.MainOffer.Price,
       name: response.data.PageOfResults[0].Title,
       link: `https://www.fnac.com//a${response.data.PageOfResults[0].Prid.Id}`,

@@ -1,25 +1,26 @@
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import * as cheerio from "cheerio";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import logger from "../logger";
 import { MOBILE_PROXY_URL } from "../env";
+import { randomUserAgent } from "../randomUserAgent";
 
 export const getAmazonProduct = async (keywords: string) => {
   try {
+    const viewportWidth = Math.floor(Math.random() * 1000) + 1000;
+
     const response = await axios({
       method: "post",
       url: "https://www.amazon.fr/s/query",
       params: {
-        ds: "v1:NifIuRKB0alHmmQR6IL1+cZHrpTMXTAzABUt6oao4TY",
         k: keywords,
         page: "1",
-        qid: "1728208225",
         ref: "sr_st_relevanceblender",
         s: "relevanceblender",
       },
       headers: {
         accept: "text/html,*/*",
-        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+        "accept-language": "fr-FR,en-US;q=0.9,en;q=0.8",
         "cache-control": "no-cache",
         "content-type": "application/json",
         "device-memory": "8",
@@ -37,27 +38,20 @@ export const getAmazonProduct = async (keywords: string) => {
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"macOS"',
         "sec-ch-ua-platform-version": '"14.6.1"',
-        "sec-ch-viewport-width": "1728",
+        "sec-ch-viewport-width": `${viewportWidth}`,
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "same-origin",
-        "user-agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
-        "viewport-width": "1728",
+        "user-agent": randomUserAgent(),
+        "viewport-width": `${viewportWidth}`,
         "x-requested-with": "XMLHttpRequest",
       },
       data: {
         "customer-action": "query",
       },
       httpsAgent: new HttpsProxyAgent(MOBILE_PROXY_URL),
+      httpAgent: new HttpsProxyAgent(MOBILE_PROXY_URL),
     });
-
-    if (response.status !== 200) {
-      logger.error(
-        `Failed to fetch Amazon product: ${response.status} for ${keywords}`
-      );
-      return;
-    }
 
     const data = response.data.split("&&&");
     const searchResult = data.find((d) => {
@@ -76,7 +70,11 @@ export const getAmazonProduct = async (keywords: string) => {
       const [, id, { html, asin }] = JSON.parse(searchResult);
 
       const $ = cheerio.load(html);
-      const productName = $("h2 span.a-size-base-plus").text().trim();
+
+      const productName = $(".s-title-instructions-style h2 span")
+        .last()
+        .text()
+        .trim();
       const price =
         $("span.a-price-whole").first().text().trim() +
         $("span.a-price-fraction").first().text().trim() +
@@ -96,6 +94,13 @@ export const getAmazonProduct = async (keywords: string) => {
       return;
     }
   } catch (e) {
+    if (isAxiosError(e)) {
+      logger.error(
+        `Failed to fetch Amazon product: ${e.response?.status} for ${keywords}`
+      );
+      logger.error({ data: e.response?.data });
+      return;
+    }
     logger.error(`Failed to fetch Amazon product: ${e} for ${keywords}`);
     return;
   }
