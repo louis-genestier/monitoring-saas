@@ -170,6 +170,10 @@ export const execute = async (interaction: CommandInteraction) => {
       const reply = await interaction.editReply({ embeds: [embed] });
       await reply.react("✅");
 
+      const thread = await reply.startThread({
+        name: `Ajout du produit: ${name.value}`,
+      });
+
       try {
         const reactions = await reply.awaitReactions({
           filter: (reaction, user) =>
@@ -179,8 +183,8 @@ export const execute = async (interaction: CommandInteraction) => {
         });
 
         if (reactions.size > 0) {
-          await interaction.editReply("🧠 Ajout en cours");
           const author = interaction.user.username;
+          const threadReply = await thread.send("🧠 Ajout en cours");
 
           const products = [
             leclerc,
@@ -226,22 +230,28 @@ export const execute = async (interaction: CommandInteraction) => {
             },
           });
 
-          await interaction.editReply("✅ Produit ajouté au monitoring");
+          await threadReply.edit("✅ Produit ajouté au monitoring");
           await reply.react("☑️");
         } else {
           await reply.reactions.removeAll();
           await reply.react("❌");
-          await interaction.editReply(
-            "❌ Temps écoulé, veuillez relancer la commande"
-          );
+          // await interaction.editReply(
+          //   "❌ Temps écoulé, veuillez relancer la commande"
+          // );
+          await thread.send("❌ Temps écoulé, veuillez relancer la commande");
           return;
         }
       } catch (error) {
         logger.error(`Error while adding product to monitoring: ${error}`);
-        await interaction.editReply(
+        // await interaction.editReply(
+        //   "⚠️ Une erreur est survenue, etes-vous sur que le produit n'est pas déjà suivi ?"
+        // );
+        await thread.send(
           "⚠️ Une erreur est survenue, etes-vous sur que le produit n'est pas déjà suivi ?"
         );
         return;
+      } finally {
+        await thread.setLocked(true);
       }
 
       // const collector = reply.createReactionCollector({
