@@ -264,6 +264,7 @@ export const Products: React.FC = () => {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>External IDs</TableHead>
+                  <TableHead>Created By</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -284,6 +285,7 @@ export const Products: React.FC = () => {
                         </div>
                       ))}
                     </TableCell>
+                    <TableCell>{product.createdBy}</TableCell>
                     <TableCell>
                       <Button
                         variant="outline"
