@@ -40,7 +40,7 @@ async function retryOperation<T>(
   throw new Error("This should never happen due to the throw in the for loop");
 }
 
-const BATCH_SIZE = 30;
+const BATCH_SIZE = 100;
 const ALERT_COOLDOWN_HOURS = 2;
 const SIGNIFICANT_PRICE_CHANGE_PERCENT = 5;
 
