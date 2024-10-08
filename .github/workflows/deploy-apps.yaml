@@ -431,6 +431,7 @@ jobs:
           CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
           GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
           MOBILE_PROXY_URL: ${{ secrets.MOBILE_PROXY_URL }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         run: |
           cd apps/discord-bot
           echo "DATABASE_URL=$DATABASE_URL" > .env
@@ -440,6 +441,7 @@ jobs:
           echo "CLIENT_ID=$CLIENT_ID" >> .env
           echo "GUILD_ID=$GUILD_ID" >> .env
           echo "MOBILE_PROXY_URL=$MOBILE_PROXY_URL" >> .env
+          echo "RESIDENTIAL_PROXY_URL=$PROXY_URL" >> .env
       - name: Deploy discord-bot commands
         run: pnpm --filter=discord-bot deploy-commands
       - name: Prune discord-bot dependencies

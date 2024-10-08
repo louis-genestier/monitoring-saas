@@ -1,5 +1,7 @@
 import axios from "axios";
 import logger from "../logger";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import { MOBILE_PROXY_URL } from "../env";
 type CulturaResponse = {
   data: {
     products: {
@@ -77,6 +79,8 @@ export const getCulturaProduct = async (keywords: string) => {
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
       },
       data: {},
+      httpsAgent: new HttpsProxyAgent(MOBILE_PROXY_URL),
+      httpAgent: new HttpsProxyAgent(MOBILE_PROXY_URL),
     });
 
     if (

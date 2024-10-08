@@ -9,6 +9,7 @@ const envSchema = object({
   CLIENT_ID: string(),
   GUILD_ID: string(),
   MOBILE_PROXY_URL: pipe(string(), url()),
+  RESIDENTIAL_PROXY_URL: pipe(string(), url()),
 });
 
 const env = parse(envSchema, process.env);
@@ -19,4 +20,5 @@ export const {
   CLIENT_ID,
   GUILD_ID,
   MOBILE_PROXY_URL,
+  RESIDENTIAL_PROXY_URL,
 } = env;
