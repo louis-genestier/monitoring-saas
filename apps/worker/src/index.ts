@@ -199,7 +199,7 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
     }
 
     // send alert on discord now and set status to sent
-    if (discountPercentage >= 30) {
+    if (discountPercentage >= 50) {
       const alert = await prisma.alert.create({
         data: {
           externalProductId: externalProduct.id,
