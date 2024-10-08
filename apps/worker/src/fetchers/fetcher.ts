@@ -52,10 +52,13 @@ export const fetcher = async <T>(
       },
     });
   } else if (url.includes("rakuten")) {
+    const viewportWidth = Math.floor(Math.random() * 1000) + 1000;
     response = await axiosInstanceWithResidentialProxy.get<T>(fullUrl, {
       headers: {
         ...axiosOptions.headers,
         "User-Agent": randomUserAgent(),
+        "sec-ch-viewport-width": `${viewportWidth}`,
+        "viewport-width": `${viewportWidth}`,
       },
     });
   } else {
