@@ -47,7 +47,9 @@ const SIGNIFICANT_PRICE_CHANGE_PERCENT = 5;
 const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
   try {
     const { website, product } = externalProduct;
-    logger.info(`Fetching price for ${product.name} on ${website.name}`);
+    logger.info(
+      `Fetching price for ${product.name} on ${website.name} (ID: ${product.id}, ExternalID: ${externalProduct.externalId})`
+    );
 
     const fetchPrice = async () => {
       switch (website.name) {
@@ -99,7 +101,7 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
       if (isAxiosError(error)) {
         if (error.response?.status === 404) {
           logger.info(
-            `Not retrying for ${error.response.status} error on ${website.name} for ${product.name}`
+            `Not retrying for ${error.response.status} error on ${website.name} for ${product.name} (ID: ${product.id})`
           );
           return false;
         }
@@ -115,13 +117,15 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
     const prices = await retryOperation(fetchPrice, shouldRetry);
 
     if (!prices) {
-      logger.error(`No prices found for ${product.name} on ${website.name}`);
+      logger.warn(
+        `No prices found for ${product.name} on ${website.name} (ID: ${product.id})`
+      );
       return;
     }
 
     if (!product.averagePrice && prices.new) {
       logger.info(
-        `Current product ${product.name} has no average price, setting it to ${prices.new} for ${website.name}`
+        `Current product ${product.name} (ID: ${product.id}) has no average price, setting it to ${prices.new} for ${website.name}`
       );
       await prisma.product.update({
         where: {
@@ -136,7 +140,9 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
     }
 
     if (!prices.new) {
-      logger.error(`No new price found for ${product.name} on ${website.name}`);
+      logger.warn(
+        `No new price found for ${product.name} on ${website.name} (ID: ${product.id})`
+      );
       return;
     }
 
@@ -156,12 +162,12 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
 
     if (discountPercentage <= 0) {
       logger.info(
-        `No discount found for ${product.name} on ${website.name}, discount is ${discountPercentage}%`
+        `No discount found for ${product.name} on ${website.name} (ID: ${product.id}), discount is ${discountPercentage}%`
       );
       return;
     }
     logger.info(
-      `Found discount of ${discountPercentage}% for ${product.name} on ${website.name}`
+      `Found discount of ${discountPercentage}% for ${product.name} on ${website.name} (ID: ${product.id})`
     );
 
     const recentAlert = await prisma.alert.findFirst({
@@ -181,7 +187,7 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
 
     if (recentAlert) {
       logger.info(
-        `Last alert for ${product.name} on ${website.name} was ${differenceInHours(new Date(), recentAlert.createdAt)} ago`
+        `Last alert for ${product.name} on ${website.name} (ID: ${product.id}) was ${differenceInHours(new Date(), recentAlert.createdAt)} hours ago`
       );
 
       const priceChangePercent = Math.abs(
@@ -192,7 +198,7 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
 
       if (priceChangePercent < SIGNIFICANT_PRICE_CHANGE_PERCENT) {
         logger.info(
-          `Price change of ${priceChangePercent}% is not significant enough for ${product.name} on ${website.name}`
+          `Price change of ${priceChangePercent}% is not significant enough for ${product.name} on ${website.name} (ID: ${product.id})`
         );
         return;
       }
@@ -230,7 +236,7 @@ const getPrice = async (externalProduct: ExternalProductWithAllRelations) => {
     }
   } catch (error) {
     logger.error(
-      `Error in getPrice: ${error}, on website ${externalProduct.website.name} and product ${externalProduct.product.name}`
+      `Error in getPrice for ${externalProduct.product.name} on ${externalProduct.website.name} (ID: ${externalProduct.product.id}, ExternalID: ${externalProduct.externalId}): ${error}`
     );
   }
 };
